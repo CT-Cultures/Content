@@ -39,30 +39,30 @@ class GetRegistration(object):
            links_allpages += (self.url_base + item.get("href"),)
 #           print(links_allpages)
         links_allpages = links_allpages[0:-2]# 删除最后两个链接：下一页与最后一页
-        links_allpages = tuple(links_allpages)
+        links_allpages = pd.DataFrame(links_allpages)
+        links_allpages.columns = ['links_of_pages']
         return links_allpages
 
 # 
-    def links_of_publications(self, savefile=False, heading=False):
+    def links_of_publications(self, savefile=False):
         links_allpages = self.links_of_pages()
-        list_links_allpublications = []
-        if heading:
-            heading = ['公示批次链接','名称']
-            list_links_allpublications += [heading]
-        for each_publish in links_allpages:
-            with urlopen(each_publish) as x: 
+        links_of_publications = []
+        for _, each_publish in links_allpages.iterrows():
+            with urlopen(each_publish.values[0]) as x: 
                 html = x.read()   # site has probelm decoding
             bsObj = BeautifulSoup(html, 'html5lib')
             for item in bsObj.find_all(href=re.compile("blueprint.nsp?")):
 #                print(item)
-                list_links_allpublications += [[self.url_base + item.get("href"), str(item.next_element)]]
-#        links_allpublishes = tuple(links_allpublishes)  
+                links_of_publications += [[self.url_base + item.get("href"), str(item.next_element)]]
+        links_of_publications = pd.DataFrame(links_of_publications)
+        links_of_publications.columns = ['公示批次链接','名称']
         if savefile:
-            writer = File()
-            filename = "PubThreatricalRegistration_links_allpublishes"
-            writer.write_to_cvs_wbk(list_links_allpublications, self.path_records, filename)
-        return list_links_allpublications
-#   
+            #writer = File()
+            filename = "PubThreatricalRegistration_links_allpublishes.csv"
+            links_of_publications.to_csv(self.path_records + '//' + filename)
+            #writer.write_to_cvs_wbk(list_links_allpublications, self.path_records, filename)
+        return links_of_publications
+    
     def links_of_registrations(self, list_links_allpublications, savefile=False, heading=False):
         list_links_allregistrations = []
         if heading:
@@ -176,7 +176,7 @@ class UpdateRegistration(object):
                 if not already_in_record:                
                     records_joined_linkpub = [heading_links_publications] + list_links_newpublications + records_existing_linkpub
                     writer = File()
-                    writer.write_to_cvs_wbk(records_joined_linkpub, self.path_record, filename)                 
+                    writer.write_to_cvs_wbk(records_joined_linkpub, self.path_records, filename)                 
             return list_links_newpublications
 
     def links_of_newregistrations(self, savefile=False):
@@ -200,7 +200,7 @@ class UpdateRegistration(object):
                 if not already_in_record:                
                     records_joined_linkreg = [heading_links_registrations] + list_links_newregistrations + records_existing_linkreg
                     writer = File()
-                    writer.write_to_cvs_wbk(records_joined_linkreg, self.path_record, filename)                
+                    writer.write_to_cvs_wbk(records_joined_linkreg, self.path_records, filename)                
         return list_links_newregistrations
     
     def contents_of_newregistrations(self, savefile=False):
