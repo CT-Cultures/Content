@@ -125,7 +125,7 @@ class Registration(object):
         
         return records_new
 
-##########    
+##########    s
     def links_of_registrations(self, 
                                links_of_publications: pd.DataFrame, 
                                filename: str = "PubThreatricalRegistration_links_allregistrations",
@@ -229,7 +229,8 @@ class Registration(object):
         else:
             links_of_new_publications = self.links_of_new_publications(update_records=update_records)
             records_new = self.links_of_registrations(links_of_new_publications, savefile=update_records)
-            records_latest = pd.concat([records_new, records_existing], axis=0, ignore_index=True)
+            records_latest = pd.concat([records_new, records_existing], axis=0, ignore_index=True, sort=False)
+            records_latest = records_latest.drop_duplicates(keep='first')
              
         if update_records:
             self.save_records(records_latest , filename, backup=True)
@@ -314,7 +315,7 @@ class Registration(object):
                             links_of_new_registrations,
                             contents_of_new_registrations
 
-        Returns
+        Returnss
         -------
         DataFrame
             DESCRIPTION.
@@ -333,8 +334,9 @@ class Registration(object):
             records_new = records_latest[~records_latest['备案立项号'].isin(records_existing['备案立项号'])]
         else:
             links_of_new_registrations = self.links_of_new_registrations(update_records=update_records)
-            records_new = self.contents_of_new_registrations(links_of_new_registrations)
-            records_latest = pd.concat([records_new, records_existing], axis=0, ignore_index=True)
+            records_new = self.contents_of_registrations(links_of_new_registrations)
+            records_latest = pd.concat([records_new, records_existing], axis=0, ignore_index=True, sort=False)
+            records_latest = records_latest.drop_duplicates(keep='first').reindex()
             
         if update_records:
               self.save_records(records_latest, filename, backup=True)

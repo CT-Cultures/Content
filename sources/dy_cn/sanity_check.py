@@ -22,13 +22,14 @@ links_of_new_publications = dy_reg.links_of_new_publications()
 links_of_new_registrations = dy_reg.links_of_new_registrations()
 #links_of_new_registrations = dy_reg.links_of_new_registrations(update_records=True)
 #%% contents of registrations
-contents_of_registrations = 
-contents_of_new_registrations = dy_reg.contents_of_new_registrations()
-
+#contents_of_registrations = dy_reg.contents_of_registrations(links_of_registrations) 
+contents_of_new_registrations = dy_reg.contents_of_new_registrations(update_records=True) 
+ 
 
 #%%
+path_records = 'records'
 filename = "PubTheatricalRegistration_info_allregistrations"
-if os.path.isfile(path_records + '//' + filename + '.csv'):
-    records_existing = pd.read_csv(path_records + '//' + filename + '.csv', index_col=0, encoding='utf-8')
-else:
-    records_existing = pd.DataFrame(columns = ['备案立项号','片名','备案单位','编剧','备案结果','备案地','梗概','公示日期','公示批次名','公示批次链接'])  
+path = path_records + '//' + filename + '.csv'
+
+os.path.isfile(path)
+os.path.isfile(path_records + '//' + filename + '.csv')
