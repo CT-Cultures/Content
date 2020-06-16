@@ -115,16 +115,14 @@ class Registration(object):
             for item in bsObj.find_all(href=re.compile("blueprint.nsp?")):
                 links_of_publications += [[self.url_base + item.get("href"), str(item.next_element)]]
         if len(links_of_publications) != 0:
-            links_of_publications_str = links_of_publications.copy()
             links_of_publications = pd.DataFrame(links_of_publications)
-            links_of_publications.columns = ['公示批次链接','名称']
+            links_of_publications.columns = ['公示批次链接','名称缩减']
         else:
-            links_of_publications = pd.DataFrame(columns = ['公示批次链接','名称'])
+            links_of_publications = pd.DataFrame(columns = ['公示批次链接','名称缩减'])
            
         if savefile:
             self.save_records(links_of_publications, filename, backup=True)
-        return links_of_publications, links_of_publications_str
-
+        return links_of_publications
 ##########
     def links_of_new_publications(self, 
                                   filename: str = "PubThreatricalRegistration_links_allpublishes",

@@ -14,13 +14,13 @@ import os
 dy_reg = Registration()
 
 #%%
-links_of_pages = dy_reg.links_of_pages()
+links_of_pages = dy_reg.links_of_pages
 #%% links opublications
-links_of_publications, links_of_publications_str = dy_reg.links_of_publications() # All Records
+links_of_publications = dy_reg.links_of_publications() # All Records
 #links_of_new_publications = dy_reg.links_of_new_publications()
 #links_of_new_publications = dy_reg.links_of_new_publications(update_records=True)
 #%% links of registrations
-links_of_registrations = dy_reg.links_of_registrations(links_of_publications, savefile=True)
+links_of_registrations = dy_reg.links_of_registrations(links_of_publications)
 #links_of_new_registrations = dy_reg.links_of_new_registrations()
 #links_of_new_registrations = dy_reg.links_of_new_registrations(update_records=True)
 #%% contents of registrations
