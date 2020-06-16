@@ -36,6 +36,9 @@ class Registration(object):
         # folder for saving records, relative
         self.path_records = 'records'
         
+        # links of pages from web
+        self.links_of_pages = self.links_of_pages()
+        
 ##########        
     def save_records(self,
                      records: pd.DataFrame, 
@@ -78,14 +81,32 @@ class Registration(object):
 
 ########## 
     def links_of_publications(self, 
+                              links_of_pages: pd.DataFrame = 'default',
                               filename: str = "PubThreatricalRegistration_links_allpublishes", 
                               savefile: bool = False) -> pd.DataFrame:
         """
-        @param savefile: bool, whether to save the file to disk
-        @return links_of_publications: pd.DataFrame
+        This functions grabs the links of registration publications
+
+        Parameters
+        ----------
+        links_of_pages : pd.DataFrame, optional
+            DESCRIPTION. The default is 'default', ['default'|'empty'|pd.DataFrame()]
+        filename : str, optional
+            DESCRIPTION. The default is "PubThreatricalRegistration_links_allpublishes".
+        savefile : bool, optional
+            DESCRIPTION. The default is False.
+
+        Returns
+        -------
+        links_of_publications : TYPE
+            DESCRIPTION.
 
         """
-        links_of_pages = self.links_of_pages()
+
+        if links_of_pages == 'default':
+            links_of_pages = self.links_of_pages
+        elif links_of_pages == 'empty':
+            links_of_pages = pd.DataFrame()
         links_of_publications = []
         for _, page in links_of_pages.iterrows():
             with urlopen(page['links_of_pages']) as x: 
@@ -93,12 +114,16 @@ class Registration(object):
             bsObj = BeautifulSoup(html, 'html5lib')
             for item in bsObj.find_all(href=re.compile("blueprint.nsp?")):
                 links_of_publications += [[self.url_base + item.get("href"), str(item.next_element)]]
-        links_of_publications = pd.DataFrame(links_of_publications)
-        links_of_publications.columns = ['公示批次链接','名称']
-       
+        if len(links_of_publications) != 0:
+            links_of_publications_str = links_of_publications.copy()
+            links_of_publications = pd.DataFrame(links_of_publications)
+            links_of_publications.columns = ['公示批次链接','名称']
+        else:
+            links_of_publications = pd.DataFrame(columns = ['公示批次链接','名称'])
+           
         if savefile:
             self.save_records(links_of_publications, filename, backup=True)
-        return links_of_publications
+        return links_of_publications, links_of_publications_str
 
 ##########
     def links_of_new_publications(self, 
@@ -111,9 +136,9 @@ class Registration(object):
         """
        
         if os.path.isfile(self.path_records + '//' + filename + '.csv'):
-            records_existing = pd.read_csv(self.path_records + '//' + filename + '.csv', index_col=0, encoding='utf-8')
+            records_existing = pd.read_csv(self.path_records + '//' + filename + '.csv', encoding='utf-8')
         else:
-            records_existing = pd.DataFrame(columns = ['公示批次链接','名称'])
+            records_existing = self.links_of_publications(links_of_pages = 'empty')
             
         # 网上获取最新
         records_latest = self.links_of_publications()
@@ -125,7 +150,7 @@ class Registration(object):
         
         return records_new
 
-##########    s
+##########
     def links_of_registrations(self, 
                                links_of_publications: pd.DataFrame, 
                                filename: str = "PubThreatricalRegistration_links_allregistrations",
@@ -177,12 +202,12 @@ class Registration(object):
                         print("str_item: " + str_item)
                     url_link_reg = self.url_base + url_part_blueprint + str_id + templateId
 #                    print(url_link_reg)
-                    links_of_registrations += [[dt_publish, title_publish, url_link_reg]]
+                    links_of_registrations += [[dt_publish, title_publish, url_link_reg, publication['公示批次链接']]]
         if len(links_of_registrations) != 0:
             links_of_registrations = pd.DataFrame(links_of_registrations)
-            links_of_registrations.columns = ['公示日期', '公示批次名称', '备案详细页链接']
+            links_of_registrations.columns = ['公示日期', '公示批次名称', '备案详细页链接', '公示批次链接']
         else:
-            links_of_registrations = pd.DataFrame(columns = ['公示日期', '公示批次名称', '备案详细页链接'])
+            links_of_registrations = pd.DataFrame(columns = ['公示日期', '公示批次名称', '备案详细页链接', '公示批次链接'])
         
         if savefile:
             self.save_records(links_of_registrations, filename, backup=True)
@@ -217,18 +242,17 @@ class Registration(object):
         """
         # Import Existing Records
         if os.path.isfile(self.path_records + '//' + filename + '.csv'):
-            records_existing = pd.read_csv(self.path_records + '//' + filename + '.csv', index_col=0, encoding='utf-8')
+            records_existing = pd.read_csv(self.path_records + '//' + filename + '.csv', encoding='utf-8')
         else:
-            records_existing = pd.DataFrame(columns = ['公示日期', '公示批次名称', '备案详细页链接'])  
-            
+            records_existing = self.links_of_registrations(links_of_publications = pd.DataFrame())            
             
         if comprehensive:
-            links_of_publications = self.links_of_publications(savefile=update_records)
-            records_latest = self.links_of_registrations(links_of_publications, savefile=update_records)
+            links_of_publications = self.links_of_publications()
+            records_latest = self.links_of_registrations(links_of_publications)
             records_new = records_latest[~records_latest['备案详细页链接'].isin(records_existing['备案详细页链接'])]
         else:
             links_of_new_publications = self.links_of_new_publications(update_records=update_records)
-            records_new = self.links_of_registrations(links_of_new_publications, savefile=update_records)
+            records_new = self.links_of_registrations(links_of_new_publications)
             records_latest = pd.concat([records_new, records_existing], axis=0, ignore_index=True, sort=False)
             records_latest = records_latest.drop_duplicates(keep='first')
              
@@ -285,17 +309,16 @@ class Registration(object):
 #        print("Total number of " + str(len(info_allregistrations)-1) + " registration info scrapped from web.")
         if len(contents_of_registrations) != 0:
             contents_of_registrations = pd.DataFrame(contents_of_registrations)
-            contents_of_registrations.columns = ['备案立项号','片名','备案单位','编剧','备案结果','备案地','梗概','公示日期','公示批次名','公示批次链接']
+            contents_of_registrations.columns = ['备案立项号','片名','备案单位','编剧','备案结果','备案地','梗概','公示日期','公示批次名称','备案公示表链接']
         else:
             contents_of_registrations = pd.DataFrame(columns=
-                                         ['备案立项号','片名','备案单位','编剧','备案结果','备案地','梗概','公示日期','公示批次名','公示批次链接'])
+                                         ['备案立项号','片名','备案单位','编剧','备案结果','备案地','梗概','公示日期','公示批次名称','备案公示表链接'])
 
         if savefile:
             self.save_records(contents_of_registrations, filename, backup=True)
             print(filename + '.csv updated.')
                   
         return contents_of_registrations
-
 
 ##########
     def contents_of_new_registrations(self, 
@@ -323,17 +346,17 @@ class Registration(object):
         """
         # Import Existing Records
         if os.path.isfile(self.path_records + '//' + filename + '.csv'):
-            records_existing = pd.read_csv(self.path_records + '//' + filename + '.csv', index_col=0, encoding='utf-8')
+            records_existing = pd.read_csv(self.path_records + '//' + filename + '.csv', encoding='utf-8')
         else:
-            records_existing = pd.DataFrame(columns = ['备案立项号','片名','备案单位','编剧','备案结果','备案地','梗概','公示日期','公示批次名','公示批次链接'])  
+            records_existing = self.contents_of_registrations(links_of_registrations = pd.DataFrame())
         
         if comprehensive:
-            links_of_publications = self.links_of_publications(savefile=update_records)
-            links_of_registrations = self.links_of_registrations(links_of_publications, savefile=update_records)
-            records_latest = self.contents_of_registrations(links_of_registrations, savefile=update_records)
+            links_of_publications = self.links_of_publications()
+            links_of_registrations = self.links_of_registrations(links_of_publications)
+            records_latest = self.contents_of_registrations(links_of_registrations)
             records_new = records_latest[~records_latest['备案立项号'].isin(records_existing['备案立项号'])]
         else:
-            links_of_new_registrations = self.links_of_new_registrations(update_records=update_records)
+            links_of_new_registrations = self.links_of_new_registrations()
             records_new = self.contents_of_registrations(links_of_new_registrations)
             records_latest = pd.concat([records_new, records_existing], axis=0, ignore_index=True, sort=False)
             records_latest = records_latest.drop_duplicates(keep='first').reindex()
@@ -344,6 +367,36 @@ class Registration(object):
 
         return records_new
     
+##########
+    def update_records(self, 
+                       fn_links_of_publications: str = "PubThreatricalRegistration_links_allpublishes",
+                       fn_links_of_registrations: str = "PubThreatricalRegistration_links_allregistrations" ,
+                       fn_contents_of_registrations: str = "PubTheatricalRegistration_info_allregistrations",
+                       save_update: bool = False
+                       ) -> pd.DataFrame:
+        
+        # Import Existing Records:
+        if os.path.isfile(self.path_records + '//' + fn_links_of_publications + '.csv'):
+            links_of_publications = pd.read_csv(self.path_records + '//' + fn_links_of_publications + '.csv', encoding='utf-8')
+        else:
+            links_of_publications = self.links_of_publications('empty')
+        
+        if os.path.isfile(self.path_records + '//' + fn_links_of_registrations + '.csv'):
+            links_of_registrations = pd.read_csv(self.path_records + '//' + fn_links_of_registrations + '.csv', encoding='utf-8')
+        else:
+            links_of_registrations = self.links_of_registrations(links_of_publications=pd.DataFrame())
+            
+        if os.path.isfile(self.path_records + '//' + fn_contents_of_registrations + '.csv'):
+            contents_of_registrations = pd.read_csv(self.path_records + '//' + fn_contents_of_registrations + '.csv', encoding='utf-8')
+        else:
+            contents_of_registrations = self.contents_of_registrations(links_of_registrations = pd.DataFrame())
+            
+        
+        links_of_publications['公示批次链接']
+        links_of_registrations['公示批次链接']
+        contents_of_registrations['公示批次链接']
+
+##########    
     def Registration_Records(self, 
                              filename: str = "PubTheatricalRegistration_info_allregistrations",
                              regid: bool = True,
