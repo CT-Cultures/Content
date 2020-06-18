@@ -39,6 +39,9 @@ class Registration(object):
         # links of pages from web
         self.links_of_pages = self.links_of_pages()
         
+        # Call Parser Class
+        self.parser = Parser_Registration()
+        
 ##########        
     def save_records(self,
                      records: pd.DataFrame, 
@@ -375,6 +378,26 @@ class Registration(object):
                        fn_contents_of_registrations: str = "contents_of_registrations",
                        save_update: bool = False
                        ) -> pd.DataFrame:
+        """
+        This functions updates the records to latest.
+
+        Parameters
+        ----------
+        fn_links_of_publications : str, optional
+            DESCRIPTION. The default is "links_of_publications".
+        fn_links_of_registrations : str, optional
+            DESCRIPTION. The default is "links_of_registrations".
+        fn_contents_of_registrations : str, optional
+            DESCRIPTION. The default is "contents_of_registrations".
+        save_update : bool, optional
+            DESCRIPTION. The default is False.
+
+        Returns
+        -------
+        contents_of_registrations_updated : TYPE
+            DESCRIPTION.
+
+        """
         
         # Import Existing Records:
         if os.path.isfile(self.path_records + '//' + fn_links_of_publications + '.csv'):
@@ -394,29 +417,7 @@ class Registration(object):
         
         links_of_publications_latest = self.links_of_publications()
 
-
-##########    
-    def Registration_Records(self, 
-                             filename: str = "PubTheatricalRegistration_info_allregistrations",
-                             regid: bool = True,
-                             title: bool = True,
-                             regco: bool = True,
-                             writer: bool = True,
-                             status: bool = True,
-                             regregion: bool = True,
-                             summary: bool  = True,
-                             pubdate: bool = True,
-                             pubname: bool = True,
-                             publink: bool = True,
-                             correct_typos: bool = True
-                             ) -> pd.DataFrame:
-        
-        if os.path.isfile(self.path_records + '//' + filename + '.csv'):
-            records_existing = pd.read_csv(self.path_records + '//' + filename + '.csv', index_col=0, encoding='utf-8-sig')
-        else:
-            links_of_publications = self.links_of_publications()
-            links_of_registrations = self.links_of_registrations(links_of_publications)
-            
+        # Find Records to update
         lp_latestest_not_in_lp_old = links_of_publications_latest[~links_of_publications_latest['公示批次链接'].isin(links_of_publications['公示批次链接'])]
         lp_old_not_in_lp_latest = links_of_publications[~links_of_publications['公示批次链接'].isin(links_of_publications_latest['公示批次链接'])]
         
@@ -429,37 +430,291 @@ class Registration(object):
         lr_old_not_in_cr_old = links_of_registrations[~links_of_registrations['制作表链接'].isin(contents_of_registrations['制作表链接'])]
         cr_old_not_in_lr_old = contents_of_registrations[~contents_of_registrations['制作表链接'].isin(links_of_registrations['制作表链接'])]
         
-        links_of_publications_to_update = pd.concat([lp_latestest_not_in_lp_old['公示批次链接'],
-                                                     lp_old_not_in_lp_latest['公示批次链接'],
-                                                     lp_latest_not_in_lr_old['公示批次链接'],
-                                                     lr_old_not_in_lp_latest['公示批次链接'],
-                                                     lp_latest_not_in_cr_old['公示批次链接'],
-                                                     cr_old_not_in_lp_latest['公示批次链接'],
-                                                     lr_old_not_in_cr_old['公示批次链接'],
-                                                     cr_old_not_in_lr_old['公示批次链接']
-                                                    ], axis=0, ignore_index=True).reset_index()
+        links_of_publications_to_update = pd.concat([   lp_latestest_not_in_lp_old['公示批次链接'],
+                                                        lp_old_not_in_lp_latest['公示批次链接'],
+                                                        lp_latest_not_in_lr_old['公示批次链接'],
+                                                        lr_old_not_in_lp_latest['公示批次链接'],
+                                                        lp_latest_not_in_cr_old['公示批次链接'],
+                                                        cr_old_not_in_lp_latest['公示批次链接'],
+                                                        lr_old_not_in_cr_old['公示批次链接'],
+                                                        cr_old_not_in_lr_old['公示批次链接']
+                                                    ], axis=0, ignore_index=True)
         
-        return records
+        links_of_publications_to_update.drop_duplicates(inplace=True)
+        links_of_publications_to_update = links_of_publications_to_update.reset_index()
+
+        if links_of_publications_to_update.shape[0] != 0:
+            # Update corresponding records.      
+            links_of_registrations_to_update = self.links_of_registrations(links_of_publications_to_update)              
+            contents_of_registrations_to_update = self.contents_of_registrations(links_of_registrations_to_update)
+    
+            
+            # Combine New Records with Existing Records and Remove Duplicates
+            links_of_registrations_updated = pd.concat([links_of_registrations,
+                                                        links_of_registrations_to_update],
+                                                       axis=0, ignore_index=True)
+            links_of_registrations_updated.drop_duplicates(subset='制作表链接', inplace=True)
+            links_of_registrations.sort_values(by=['公示日期','制作表链接'], ascending=False, inplace=True)
+            links_of_registrations.reset_index(drop=True, inplace=True)
+            
+            contents_of_registrations_updated = pd.concat([contents_of_registrations,
+                                                           contents_of_registrations_to_update],
+                                                          axis=0, ignore_index=True)        
+            contents_of_registrations_updated.drop_duplicates(subset=['制作表链接','公示批次链接'], inplace=True)
+            contents_of_registrations_updated.sort_values(by=['公示日期','制作表链接'], ascending=False, inplace=True)
+            contents_of_registrations_updated.reset_index(drop=True, inplace=True)
+        else:
+            links_of_publications_latest = links_of_publications
+            links_of_registrations_updated = links_of_registrations
+            contents_of_registrations_updated = contents_of_registrations
+            contents_of_registrations_updated.sort_values(by=['公示日期','制作表链接'], ascending=False, inplace=True)
+            contents_of_registrations_updated.reset_index(drop=True, inplace=True)
+        
+        if save_update:        
+        # Save Updated Records
+            self.save_records(links_of_publications_latest, fn_links_of_publications)
+            self.save_records(links_of_registrations_updated, fn_links_of_registrations)       
+            self.save_records(contents_of_registrations_updated, fn_contents_of_registrations)
+            print('Records from ' + str(len(links_of_publications_to_update)) + 'publication(s) are added to contents of registrations.')
+            
+        return contents_of_registrations_updated
+
+
+##########    
+    def Refined_Records(self, 
+                             fn_raw: str = "contents_of_registrations",
+                             fn_refined: str = 'contents_of_registrations_refined',
+                             update_first: bool = True,
+                             save_refined: bool = False
+                             ) -> pd.DataFrame:
+        if update_first:
+            contents_of_registrations_raw = self.update_records()
+        
+        elif os.path.isfile(self.path_records + '//' + fn_raw + '.csv'):
+            contents_of_registrations_raw = pd.read_csv(self.path_records + '//' + filename + '.csv', encoding='utf-8-sig')
+        else:
+            contents_of_registrations_raw = self.contents_of_registrations(pd.DataFrame())
+            
+
+        return contents_of_registrations_refined
             
         
 ##########
-    def correct_typos(self, 
-                         contents_of_registrations: pd.DataFrame) -> pd.DataFrame:
-        """This functions corrects typos in the registration, all picked out manually,
-        future corrections can be updated here.
-        @param contents_of_registrations: pd.DataFrame
-        @return contents_of_registrations: pd.DataFrame
+
+##########==========##########==========##########==========##########==========
+class Parser_Registration(object):
+    
+##########
+    def __init__(self):
+        super(Parser_Registration, self).__init__()
+            
+##########           
+    def correct_publication_title_errors(self, pubtitle: str, publink: str) -> str:
         """
-        pubtitle_error_corrector = {
-         '国家新闻出版广电总局电影局关于2011年10月全国电影剧本（梗概）备案、立项公示的通知':
+        This functions corrects known publication title typos, can be used with pandas apply.
+
+        Parameters
+        ----------
+        pubtitle : str
+            DESCRIPTION.
+        publink : str
+            DESCRIPTION.
+
+        Returns
+        -------
+        str
+            DESCRIPTION.
+
+        """
+
+        publication_title_errors = {
+         'http://dy.chinasarft.gov.cn/shanty.deploy/blueprint.nsp?id=014d1d2c7258636b402881a74cc1e374&templateId=0129f8148f650065402881cd29f7df33':
          '国家新闻出版广电总局电影局关于2015年04月（上旬）全国电影剧本（梗概）备案、立项公示的通知',
          
-         '广电总局电影局关于2017年11月（下旬）全国电影剧本（梗概）备案、立项公示的通知':
+         'http://dy.chinasarft.gov.cn/shanty.deploy/blueprint.nsp?id=013459855d1d1413402881a6344513a3&templateId=0129f8148f650065402881cd29f7df33':
          '广电总局电影局关于2011年11月（下旬）全国电影剧本（梗概）备案、立项公示的通知',
          
-         '广电总局电影局关于2011年06月（下旬）全国电影剧本（梗概）备案、立项公示的通知':
+         'http://dy.chinasarft.gov.cn/shanty.deploy/blueprint.nsp?id=01387536929c725a402881a737c5ff2c&templateId=0129f8148f650065402881cd29f7df33':
          '广电总局电影局关于2012年06月（下旬）全国电影剧本（梗概）备案、立项公示的通知'}
         
-        contents_of_registrations.apply(lambda x: pubtitle_error_corrector[x] if x in pubtitle_error_corrector else x)
+        if publink in publication_title_errors:
+            pubtitle = publication_title_errors[publink]
+            
+        return pubtitle
+        
+##########     
+    def PubDate(self, regpubdate: str) -> datetime:
+        """
+        This function converts raw Publication Date to Datetime Formats
 
-        return contents_of_registrations
+        Parameters
+        ----------
+        regpubdate : str
+            DESCRIPTION.
+
+        Returns
+        -------
+        datetime
+            DESCRIPTION.
+
+        """
+        #sample = '2019-03-11 17:21'
+        dt = datetime.datetime.strptime(regpubdate, "%Y-%m-%d %H:%M")
+        return dt
+
+    def IssueDate(self, string_issuedate):
+#        sample = '2019-03-11'
+        dt = datetime.datetime.strptime(string_issuedate, "%Y-%m-%d")
+        return dt
+
+    def PubTitle(self, string_regpubtitle):
+#        sample = '国家电影局关于2019年02月（下旬）全国电影剧本（梗概）备案、立项公示的通知'
+#        sample2 = '国家电影局关于2019年02月（中旬）全国电影剧本（梗概）备案、立项公示的通知'
+#        sample3 = '国家电影局关于2019年01月（下旬）、02月（上旬）全国电影剧本（梗概）备案、立项公示的通知'
+#        sample4 = '国家新闻出版广电总局电影局关于2016年09月（下旬）10月（上旬）全国电影剧本（梗概）备案、立项公示的通知'
+#        sample5 = '广电总局电影局关于2011年10月(上旬)全国电影剧本（梗概）备案、立项公示的通知'
+        sample6 = '广电总局电影局关于2011年11月(上旬)全国电影剧本（梗概）备案、立项公示的通知'
+        sample7 = '广电总局电影局关于2011年09月(下旬)全国电影剧本（梗概）备案、立项公示的通知'
+        sample8 = '广电总局电影局关于2011年09月（上旬）全国电影剧本（梗概）备案、立项公示的通知'
+        sample9 = '广电总局电影局关于2014年09月下旬全国电影剧本（梗概）备案、立项公示的通知'
+
+        pattern_year = re.compile(u"关于[0-9][0-9][0-9][0-9]年")
+        pattern_month = re.compile(u"年.*?月")
+        pattern_month_additional = re.compile(u"、[0-9][0-9]月")
+        pattern_month_additional2 = re.compile(u"）[0-9][0-9]月")
+        pattern_partofmonth = re.compile(u"（.*?旬）")
+        pattern_partofmonth_alt1 = re.compile(u"月(.*?旬)")
+        pattern_partofmonth_alt2 = re.compile(u"月.*?旬")
+
+        year = pattern_year.search(string_regpubtitle)
+        if year:
+            year = year.group().lstrip('关于').rstrip('年')
+        else:
+            year = "没有年"
+
+        month = pattern_month.search(string_regpubtitle)
+        if month:
+            month = month.group().lstrip('年').rstrip('月')
+            month_add = pattern_month_additional.search(string_regpubtitle)
+            month_add2 = pattern_month_additional2.search(string_regpubtitle)
+            if month_add:
+                month_add = month_add.group().lstrip(u'、').rstrip('月')
+                month = month + '、' + month_add
+            if month_add2:
+                month_add = month_add2.group().lstrip(u'）').rstrip('月')
+                month = month + '、' + month_add
+        else:
+            month = "没有月"
+
+        partofmonth = pattern_partofmonth.findall(string_regpubtitle)
+        partofmonth_alt1 = pattern_partofmonth_alt1.findall(string_regpubtitle)
+        partofmonth_alt2 = pattern_partofmonth_alt2.findall(string_regpubtitle)
+        if partofmonth:
+            if len(partofmonth) == 1:
+                partofmonth = partofmonth[0].lstrip('（').rstrip('）')
+            elif len(partofmonth) == 2:
+                part1 = partofmonth[0].lstrip('（').rstrip('）')
+                part2 = partofmonth[1].lstrip('（').rstrip('）')
+                partofmonth = part1 + '、' + part2
+        elif partofmonth_alt1:
+            if len(partofmonth_alt1) == 1:
+                partofmonth = partofmonth_alt1[0].lstrip('月(').rstrip(')')
+            elif len(partofmonth_alt1) == 2:
+                part1 = partofmonth_alt1[0].lstrip('月(').rstrip(')')
+                part2 = partofmonth_alt1[1].lstrip('月(').rstrip(')')
+                partofmonth = part1 + '、' + part2
+        elif partofmonth_alt2:
+            if len(partofmonth_alt2) == 1:
+                partofmonth = partofmonth_alt2[0].lstrip('月(').rstrip(')')
+            elif len(partofmonth_alt2) == 2:
+                part1 = partofmonth_alt2[0].lstrip('月(').rstrip(')')
+                part2 = partofmonth_alt2[1].lstrip('月(').rstrip(')')
+                partofmonth = part1 + '、' + part2
+        else:
+            partofmonth = "没有旬"
+        return [year, month, partofmonth]
+
+    def RegID(self, string_regid):
+#        sample1 = u'影剧备字[2009]720'
+#        sample2 = u'影剧备字[2011]第1584号'
+#        sample3 = u'待定'
+#        sample4 = u'影立合字（2013）49号'
+#        sample5 = u'影立合字【2012】第07号'
+        RegNumber_parsed = []
+        # 备案立项号 Type：电影片/记录片/合拍片/特种片/科教片
+        pattern_type_regular = re.compile('影剧备字')
+        pattern_type_documentary = re.compile('影纪备字')
+        pattern_type_special = re.compile('影特备字')
+        pattern_type_science = re.compile('影科备字')
+        pattern_type_animation = re.compile('影动备字')
+        pattern_type_significance = re.compile('影重备字')
+        pattern_type_supporting = re.compile('影复协字')
+        pattern_type_supporting_alt1 = re.compile('影立协字')
+        pattern_type_supporting_alt2 = re.compile('影协立字')
+        pattern_type_coproduction = re.compile('影合立字')
+        pattern_type_coproduction_alt1 = re.compile('影立合字')
+        pattern_type_coproduction_alt2 = re.compile('影合证字')
+        if pattern_type_regular.search(string_regid):
+            reg_type = '故事片'
+        elif pattern_type_documentary.search(string_regid):
+            reg_type = '纪录片'
+        elif pattern_type_special.search(string_regid):
+            reg_type = '特种片'
+        elif pattern_type_science.search(string_regid):
+            reg_type = '科教片'
+        elif pattern_type_animation.search(string_regid):
+            reg_type = '动画片'
+        elif pattern_type_significance.search(string_regid):
+            reg_type = '重大历史题材片'
+        elif pattern_type_supporting.search(string_regid):
+            reg_type = '协拍片'
+        elif pattern_type_supporting_alt1.search(string_regid):
+            reg_type = '协拍片'
+        elif pattern_type_supporting_alt2.search(string_regid):
+            reg_type = '协拍片'
+        elif pattern_type_coproduction.search(string_regid):
+            reg_type = '合拍片'
+        elif pattern_type_coproduction_alt1.search(string_regid):
+            reg_type = '合拍片'
+        elif pattern_type_coproduction_alt2.search(string_regid):
+            reg_type = '合拍片'
+        else:
+            reg_type = '都是什么鬼'
+        RegNumber_parsed.append(reg_type)
+        # 从备案号提取 年份
+        pattern_reg_year = re.compile("\[[0-9][0-9][0-9][0-9]\]")
+        pattern_reg_year_alt = re.compile("（[0-9][0-9][0-9][0-9]）")
+        pattern_reg_year_alt2 = re.compile("【[0-9][0-9][0-9][0-9]】")
+        reg_year = pattern_reg_year.search(string_regid)
+        reg_year_alt = pattern_reg_year_alt.search(string_regid)
+        reg_year_alt2 = pattern_reg_year_alt2.search(string_regid)
+        if reg_year:
+            reg_year = reg_year.group().lstrip('[').rstrip(']')
+        elif reg_year_alt:
+            reg_year = reg_year_alt.group().lstrip('（').rstrip('）')
+        elif reg_year_alt2:
+            reg_year = reg_year_alt2.group().lstrip('【').rstrip('】')
+        else:
+            reg_year = '查看备案号： ' + string_regid
+#            print(reg_year)
+        RegNumber_parsed.append(reg_year)
+
+        # 从备案号提取 备案顺序号
+        pattern_reg_orderedid = re.compile(u'第.*?号')
+        pattern_reg_orderedid_alt1 = re.compile(u'][0-9].*')
+        pattern_reg_orderedid_alt2 = re.compile(u'）[0-9].*号')
+        reg_orderedid = pattern_reg_orderedid.search(string_regid)
+        reg_orderedid_alt1 = pattern_reg_orderedid_alt1.search(string_regid)
+        reg_orderedid_alt2 = pattern_reg_orderedid_alt2.search(string_regid)
+        if reg_orderedid:
+            reg_orderedid = reg_orderedid.group().lstrip('第').rstrip('号')
+        elif reg_orderedid_alt1:
+            reg_orderedid = reg_orderedid_alt1.group().lstrip(']')
+        elif reg_orderedid_alt2:
+            reg_orderedid = reg_orderedid_alt2.group().lstrip('）').rstrip('号')
+        else:
+            reg_orderedid = '查看备案号： ' + string_regid
+#            print(reg_orderedid)
+        RegNumber_parsed.append(reg_orderedid)
+        return RegNumber_parsed
+        
