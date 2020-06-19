@@ -6,6 +6,7 @@ Prerequisites:
 - Pandas
 - Beautiful Soup 4
   -- headless chrome
+- html5lib
 
 
 Sources:

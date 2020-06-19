@@ -8,6 +8,8 @@ Created on Tue Jun  9 03:07:32 2020
 #%% Import Packages
 from dy_Registration import Registration
 import pandas as pd
+
+
 import numpy as np
 import os
 
@@ -33,6 +35,13 @@ contents_of_new_registrations = dy_reg.contents_of_new_registrations()
 up_to_date_records_raw = dy_reg.update_records(save_update=True)
 
 #%%
-links_of_registrations = pd.read_csv('records/links_of_registrations.csv', encoding='utf-8-sig')
-links_of_registrations.sort_values(by=['公示日期','制作表链接'], ascending=False, inplace=True)
-links_of_registrations.reset_index(drop=True, inplace=True)
+contents_of_registrations_raw = pd.read_csv('records/contents_of_registrations.csv', encoding='utf-8-sig')
+#%%\
+contents_of_registrations_raw['公示日期'].agg(dy_reg.parser.PubDate)
+contents_of_registrations_raw['公示日期']
+
+#%%
+contents_of_registrations_raw
+
+contents_of_registrations['公示批次名称'] = contents_of_registrations_raw.agg(dy_reg.parser.correct_publication_title_errors, axis=1)
+contents_of_registrations 

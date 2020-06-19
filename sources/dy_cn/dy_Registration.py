@@ -491,11 +491,18 @@ class Registration(object):
             contents_of_registrations_raw = self.update_records()
         
         elif os.path.isfile(self.path_records + '//' + fn_raw + '.csv'):
-            contents_of_registrations_raw = pd.read_csv(self.path_records + '//' + filename + '.csv', encoding='utf-8-sig')
+            contents_of_registrations_raw = pd.read_csv(self.path_records + '//' + fn_raw + '.csv', encoding='utf-8-sig')
         else:
             contents_of_registrations_raw = self.contents_of_registrations(pd.DataFrame())
-            
 
+        #======== REFININIG RECORDS
+        contents_of_registrations_refined = contents_of_registrations_raw.copy()
+        
+        # Corrrect Publication Title Errors
+        contents_of_registrations_refined['公示批次名称'] = contents_of_registrations_raw.agg(
+            self.parser.correct_publication_title_errors, axis=1)
+            
+        # Return Refined DataFrame
         return contents_of_registrations_refined
             
         
@@ -509,14 +516,14 @@ class Parser_Registration(object):
         super(Parser_Registration, self).__init__()
             
 ##########           
-    def correct_publication_title_errors(self, pubtitle: str, publink: str) -> str:
+    def correct_publication_title_errors(self, df_row: pd.DataFrame) -> str:
         """
-        This functions corrects known publication title typos, can be used with pandas apply.
+        This functions corrects known publication title typos, can be used with pandas apply and agg along axis=1
 
         Parameters
         ----------
-        pubtitle : str
-            DESCRIPTION.
+        pubtitle : pd.DataFrame
+            for use with the apply or agg fucntion, along axis=1
         publink : str
             DESCRIPTION.
 
@@ -526,7 +533,7 @@ class Parser_Registration(object):
             DESCRIPTION.
 
         """
-
+        pubtitle, publink = df_row['公示批次名称'], df_row['公示批次链接']
         publication_title_errors = {
          'http://dy.chinasarft.gov.cn/shanty.deploy/blueprint.nsp?id=014d1d2c7258636b402881a74cc1e374&templateId=0129f8148f650065402881cd29f7df33':
          '国家新闻出版广电总局电影局关于2015年04月（上旬）全国电影剧本（梗概）备案、立项公示的通知',
