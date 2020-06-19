@@ -42,5 +42,22 @@ contents_of_registrations_raw['公示日期']
 
 #%%
 contents_of_registrations_raw['公示批次名称'].agg(dy_reg.parser.PubTitle)
-
 contents_of_registrations['公示批次名称'] 
+
+contents_of_registrations.columns
+
+#%%
+contents_of_registrations_raw['备案立项号'].agg(dy_reg.parser.RegType)
+
+contents_of_registrations_raw[contents_of_registrations_raw['备案立项号'].isna()]
+#%%
+contents_of_registrations_refined = dy_reg.Refined_Records(update_first=False)
+
+#%%
+
+pat = '[\[【（(][0-9][0-9][0-9][0-9][)）】\]]'
+pat = re.compile(pat)
+reg_year = pat.search('(2039)')
+if reg_year:
+    reg_year = reg_year.group()
+reg_year = reg_year.lstrip('[\[【（(]').rstrip('[)）】\]]')

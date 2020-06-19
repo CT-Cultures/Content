@@ -487,6 +487,26 @@ class Registration(object):
                              update_first: bool = True,
                              save_refined: bool = False
                              ) -> pd.DataFrame:
+        """
+        This functions refines and parsers raw registration data to features.
+
+        Parameters
+        ----------
+        fn_raw : str, optional
+            DESCRIPTION. The default is "contents_of_registrations".
+        fn_refined : str, optional
+            DESCRIPTION. The default is 'contents_of_registrations_refined'.
+        update_first : bool, optional
+            DESCRIPTION. The default is True.
+        save_refined : bool, optional
+            DESCRIPTION. The default is False.
+
+        Returns
+        -------
+        contents_of_registrations_refined : TYPE
+            DESCRIPTION.
+
+        """
         if update_first:
             contents_of_registrations_raw = self.update_records()
         
@@ -501,7 +521,14 @@ class Registration(object):
         # Corrrect Publication Title Errors
         contents_of_registrations_refined['公示批次名称'] = contents_of_registrations_raw.agg(
             self.parser.correct_publication_title_errors, axis=1)
-            
+        
+        # Parse Film Type
+        contents_of_registrations_refined['类型'] = contents_of_registrations_raw['备案立项号'].agg(
+            self.parser.RegType)
+        
+        # Extract Reg Submit Year
+        contents_of_registrations_refined['备案申请年份'] = contents_of_registrations_raw['备案立项号'].agg(
+            self.parser.RegSubmitYear)
         # Return Refined DataFrame
         return contents_of_registrations_refined
             
@@ -640,8 +667,79 @@ class Parser_Registration(object):
         else:
             partofmonth = "没有旬"
         return [year, month, partofmonth]
+    
+    def RegType(self, regid: str) -> str:
+        """
+        This functions extracts the movie type from the RegID,
+        to be used in pandas agg or apply with series or dataframes
+
+        Parameters
+        ----------
+        regid : pd.Series
+            DESCRIPTION.
+
+        Returns
+        -------
+        str
+            DESCRIPTION.
+
+        """
+        
+        idtype_2_dytype = {'影剧备字': '故事片',
+                          '影纪备字': '纪录片',
+                          '影特备字': '特种片',
+                          '影科备字': '科教片',
+                          '影动备字': '动画片',
+                          '影重备字': '重大历史题材片',
+                          '影复协字': '协拍片',
+                          '影立协字': '协拍片',
+                          '影协立字': '协拍片',
+                          '影协证字': '协拍片',
+                          '影合立字': '合拍片',
+                          '影立合字': '合拍片',
+                          '影合证字': '合拍片'
+                          }
+        reg_type = np.nan
+        for key, value in idtype_2_dytype.items():
+            if key in str(regid):
+                reg_type = value
+        
+        return reg_type
+
+########
+    def RegSubmitYear(self, regid: str) -> str:
+        """
+        This functions extracts the submit year from the RegId,
+
+        Parameters
+        ----------
+        regid : str
+            DESCRIPTION.
+
+        Returns
+        -------
+        str
+            DESCRIPTION.
+
+        """
+        
+        # 从备案号提取 年份
+        pat = '[\[【（(][0-9][0-9][0-9][0-9][)）】\]]'
+        pat = re.compile(pat)
+        reg_submit_year = pat.search(str(regid))
+
+        if reg_submit_year:
+            reg_submit_year = reg_submit_year.group()
+            reg_submit_year = reg_submit_year.lstrip('[\[【（(]').rstrip('[)）】\]]')
+        else:
+            reg_submit_year = np.nan
+        
+        return reg_submit_year
+        
+ 
 
     def RegID(self, string_regid):
+           
 #        sample1 = u'影剧备字[2009]720'
 #        sample2 = u'影剧备字[2011]第1584号'
 #        sample3 = u'待定'
