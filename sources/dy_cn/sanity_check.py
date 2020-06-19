@@ -41,7 +41,6 @@ contents_of_registrations_raw['公示日期'].agg(dy_reg.parser.PubDate)
 contents_of_registrations_raw['公示日期']
 
 #%%
-contents_of_registrations_raw
+contents_of_registrations_raw['公示批次名称'].agg(dy_reg.parser.PubTitle)
 
-contents_of_registrations['公示批次名称'] = contents_of_registrations_raw.agg(dy_reg.parser.correct_publication_title_errors, axis=1)
-contents_of_registrations 
+contents_of_registrations['公示批次名称'] 
