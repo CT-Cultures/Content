@@ -9,14 +9,11 @@ Created on Sun Mar 17 00:04:07 2019
 # Load Standard Library
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
-from pathlib import Path
-from urllib.error import HTTPError
 import re
 import numpy as np
 import pandas as pd
 
 import datetime
-from pathlib import Path
 import os
 
 ######################################################################
@@ -522,6 +519,9 @@ class Registration(object):
         contents_of_registrations_refined['公示批次名称'] = contents_of_registrations_raw.agg(
             self.parser.correct_publication_title_errors, axis=1)
         
+        # Drop duplicates after corrections
+        contents_of_registrations_refined.drop_duplicates(inplace=True)
+        
         # Parse Film Type
         contents_of_registrations_refined['类型'] = contents_of_registrations_raw['备案立项号'].agg(
             self.parser.RegType)
@@ -529,10 +529,17 @@ class Registration(object):
         # Extract Reg Submit Year
         contents_of_registrations_refined['备案申请年份'] = contents_of_registrations_raw['备案立项号'].agg(
             self.parser.RegSubmitYear)
-        # Return Refined DataFrame
-        return contents_of_registrations_refined
-            
         
+        # Extract Reg Sequence Number
+        contents_of_registrations_refined['备案立项年度顺序号'] = contents_of_registrations_raw['备案立项号'].agg(
+            self.parser.RegSequenceNo)
+        
+        # Get Previous Pubtitle
+        contents_of_registrations_refined['上期公示批次名称'] = contents_of_registrations_refined['公示批次名称'].shift(1)
+        
+        # Extract Reg Sequence Number
+        return contents_of_registrations_refined
+    
 ##########
 
 ##########==========##########==========##########==========##########==========
@@ -601,16 +608,114 @@ class Parser_Registration(object):
         dt = datetime.datetime.strptime(string_issuedate, "%Y-%m-%d")
         return dt
 
+#########   
+    def RegType(self, regid: str) -> str:
+        """
+        This functions extracts the movie type from the RegID,
+        to be used in pandas agg or apply with series or dataframes
+
+        Parameters
+        ----------
+        regid : pd.Series
+            DESCRIPTION.
+
+        Returns
+        -------
+        str
+            DESCRIPTION.
+
+        """       
+        idtype_2_dytype = {'影剧备字': '故事片',
+                          '影纪备字': '纪录片',
+                          '影特备字': '特种片',
+                          '影科备字': '科教片',
+                          '影动备字': '动画片',
+                          '影重备字': '重大历史题材片',
+                          '影复协字': '协拍片',
+                          '影立协字': '协拍片',
+                          '影协立字': '协拍片',
+                          '影协证字': '协拍片',
+                          '影合立字': '合拍片',
+                          '影立合字': '合拍片',
+                          '影合证字': '合拍片'
+                          }
+        reg_type = np.nan
+        for key, value in idtype_2_dytype.items():
+            if key in str(regid):
+                reg_type = value
+        
+        return reg_type
+
+########
+    def RegSubmitYear(self, regid: str) -> str:
+        """
+        This functions extracts the submit year from the RegId,
+
+        Parameters
+        ----------
+        regid : str
+            DESCRIPTION.
+
+        Returns
+        -------
+        str
+            DESCRIPTION.
+
+        """       
+        # 从备案号提取 年份
+        pat = '[\[【（(][0-9][0-9][0-9][0-9][)）】\]]'
+        pat = re.compile(pat)
+        reg_submit_year = pat.search(str(regid))
+
+        if reg_submit_year:
+            reg_submit_year = reg_submit_year.group()
+            reg_submit_year = reg_submit_year.lstrip('[\[【（(]').rstrip('[)）】\]]')
+        else:
+            reg_submit_year = np.nan
+        
+        return reg_submit_year
+
+##########    
+    def RegSequenceNo(self, regid: str) -> str:
+        """
+        This function extracts the reg sequence number from RegId.
+
+        Parameters
+        ----------
+        regid : str
+            DESCRIPTION.
+
+        Returns
+        -------
+        str
+            DESCRIPTION.
+
+        """
+         # 从备案号提取 备案顺序号
+        pat = u'第.*?号|][0-9].*|）[0-9].*号'
+        pat = re.compile(pat)
+        reg_sequence_no = pat.search(str(regid))
+        
+        if reg_sequence_no:
+            reg_sequence_no = reg_sequence_no.group()
+            reg_sequence_no = reg_sequence_no.lstrip('[第\]）]').rstrip('[号]')
+        else:
+            reg_sequence_no = np.nan            
+        return reg_sequence_no
+ 
+ ##########
     def PubTitle(self, string_regpubtitle):
 #        sample = '国家电影局关于2019年02月（下旬）全国电影剧本（梗概）备案、立项公示的通知'
 #        sample2 = '国家电影局关于2019年02月（中旬）全国电影剧本（梗概）备案、立项公示的通知'
 #        sample3 = '国家电影局关于2019年01月（下旬）、02月（上旬）全国电影剧本（梗概）备案、立项公示的通知'
 #        sample4 = '国家新闻出版广电总局电影局关于2016年09月（下旬）10月（上旬）全国电影剧本（梗概）备案、立项公示的通知'
 #        sample5 = '广电总局电影局关于2011年10月(上旬)全国电影剧本（梗概）备案、立项公示的通知'
-        sample6 = '广电总局电影局关于2011年11月(上旬)全国电影剧本（梗概）备案、立项公示的通知'
-        sample7 = '广电总局电影局关于2011年09月(下旬)全国电影剧本（梗概）备案、立项公示的通知'
-        sample8 = '广电总局电影局关于2011年09月（上旬）全国电影剧本（梗概）备案、立项公示的通知'
-        sample9 = '广电总局电影局关于2014年09月下旬全国电影剧本（梗概）备案、立项公示的通知'
+#        sample6 = '广电总局电影局关于2011年11月(上旬)全国电影剧本（梗概）备案、立项公示的通知'
+#        sample7 = '广电总局电影局关于2011年09月(下旬)全国电影剧本（梗概）备案、立项公示的通知'
+#        sample8 = '广电总局电影局关于2011年09月（上旬）全国电影剧本（梗概）备案、立项公示的通知'
+#        sample9 = '广电总局电影局关于2014年09月下旬全国电影剧本（梗概）备案、立项公示的通知'
+#        sample1-= '国家电影局关于2020年01月下、02月全国电影剧本（梗概）备案、立项公示的通知'
+
 
         pattern_year = re.compile(u"关于[0-9][0-9][0-9][0-9]年")
         pattern_month = re.compile(u"年.*?月")
@@ -667,159 +772,4 @@ class Parser_Registration(object):
         else:
             partofmonth = "没有旬"
         return [year, month, partofmonth]
-    
-    def RegType(self, regid: str) -> str:
-        """
-        This functions extracts the movie type from the RegID,
-        to be used in pandas agg or apply with series or dataframes
-
-        Parameters
-        ----------
-        regid : pd.Series
-            DESCRIPTION.
-
-        Returns
-        -------
-        str
-            DESCRIPTION.
-
-        """
-        
-        idtype_2_dytype = {'影剧备字': '故事片',
-                          '影纪备字': '纪录片',
-                          '影特备字': '特种片',
-                          '影科备字': '科教片',
-                          '影动备字': '动画片',
-                          '影重备字': '重大历史题材片',
-                          '影复协字': '协拍片',
-                          '影立协字': '协拍片',
-                          '影协立字': '协拍片',
-                          '影协证字': '协拍片',
-                          '影合立字': '合拍片',
-                          '影立合字': '合拍片',
-                          '影合证字': '合拍片'
-                          }
-        reg_type = np.nan
-        for key, value in idtype_2_dytype.items():
-            if key in str(regid):
-                reg_type = value
-        
-        return reg_type
-
-########
-    def RegSubmitYear(self, regid: str) -> str:
-        """
-        This functions extracts the submit year from the RegId,
-
-        Parameters
-        ----------
-        regid : str
-            DESCRIPTION.
-
-        Returns
-        -------
-        str
-            DESCRIPTION.
-
-        """
-        
-        # 从备案号提取 年份
-        pat = '[\[【（(][0-9][0-9][0-9][0-9][)）】\]]'
-        pat = re.compile(pat)
-        reg_submit_year = pat.search(str(regid))
-
-        if reg_submit_year:
-            reg_submit_year = reg_submit_year.group()
-            reg_submit_year = reg_submit_year.lstrip('[\[【（(]').rstrip('[)）】\]]')
-        else:
-            reg_submit_year = np.nan
-        
-        return reg_submit_year
-        
- 
-
-    def RegID(self, string_regid):
-           
-#        sample1 = u'影剧备字[2009]720'
-#        sample2 = u'影剧备字[2011]第1584号'
-#        sample3 = u'待定'
-#        sample4 = u'影立合字（2013）49号'
-#        sample5 = u'影立合字【2012】第07号'
-        RegNumber_parsed = []
-        # 备案立项号 Type：电影片/记录片/合拍片/特种片/科教片
-        pattern_type_regular = re.compile('影剧备字')
-        pattern_type_documentary = re.compile('影纪备字')
-        pattern_type_special = re.compile('影特备字')
-        pattern_type_science = re.compile('影科备字')
-        pattern_type_animation = re.compile('影动备字')
-        pattern_type_significance = re.compile('影重备字')
-        pattern_type_supporting = re.compile('影复协字')
-        pattern_type_supporting_alt1 = re.compile('影立协字')
-        pattern_type_supporting_alt2 = re.compile('影协立字')
-        pattern_type_coproduction = re.compile('影合立字')
-        pattern_type_coproduction_alt1 = re.compile('影立合字')
-        pattern_type_coproduction_alt2 = re.compile('影合证字')
-        if pattern_type_regular.search(string_regid):
-            reg_type = '故事片'
-        elif pattern_type_documentary.search(string_regid):
-            reg_type = '纪录片'
-        elif pattern_type_special.search(string_regid):
-            reg_type = '特种片'
-        elif pattern_type_science.search(string_regid):
-            reg_type = '科教片'
-        elif pattern_type_animation.search(string_regid):
-            reg_type = '动画片'
-        elif pattern_type_significance.search(string_regid):
-            reg_type = '重大历史题材片'
-        elif pattern_type_supporting.search(string_regid):
-            reg_type = '协拍片'
-        elif pattern_type_supporting_alt1.search(string_regid):
-            reg_type = '协拍片'
-        elif pattern_type_supporting_alt2.search(string_regid):
-            reg_type = '协拍片'
-        elif pattern_type_coproduction.search(string_regid):
-            reg_type = '合拍片'
-        elif pattern_type_coproduction_alt1.search(string_regid):
-            reg_type = '合拍片'
-        elif pattern_type_coproduction_alt2.search(string_regid):
-            reg_type = '合拍片'
-        else:
-            reg_type = '都是什么鬼'
-        RegNumber_parsed.append(reg_type)
-        # 从备案号提取 年份
-        pattern_reg_year = re.compile("\[[0-9][0-9][0-9][0-9]\]")
-        pattern_reg_year_alt = re.compile("（[0-9][0-9][0-9][0-9]）")
-        pattern_reg_year_alt2 = re.compile("【[0-9][0-9][0-9][0-9]】")
-        reg_year = pattern_reg_year.search(string_regid)
-        reg_year_alt = pattern_reg_year_alt.search(string_regid)
-        reg_year_alt2 = pattern_reg_year_alt2.search(string_regid)
-        if reg_year:
-            reg_year = reg_year.group().lstrip('[').rstrip(']')
-        elif reg_year_alt:
-            reg_year = reg_year_alt.group().lstrip('（').rstrip('）')
-        elif reg_year_alt2:
-            reg_year = reg_year_alt2.group().lstrip('【').rstrip('】')
-        else:
-            reg_year = '查看备案号： ' + string_regid
-#            print(reg_year)
-        RegNumber_parsed.append(reg_year)
-
-        # 从备案号提取 备案顺序号
-        pattern_reg_orderedid = re.compile(u'第.*?号')
-        pattern_reg_orderedid_alt1 = re.compile(u'][0-9].*')
-        pattern_reg_orderedid_alt2 = re.compile(u'）[0-9].*号')
-        reg_orderedid = pattern_reg_orderedid.search(string_regid)
-        reg_orderedid_alt1 = pattern_reg_orderedid_alt1.search(string_regid)
-        reg_orderedid_alt2 = pattern_reg_orderedid_alt2.search(string_regid)
-        if reg_orderedid:
-            reg_orderedid = reg_orderedid.group().lstrip('第').rstrip('号')
-        elif reg_orderedid_alt1:
-            reg_orderedid = reg_orderedid_alt1.group().lstrip(']')
-        elif reg_orderedid_alt2:
-            reg_orderedid = reg_orderedid_alt2.group().lstrip('）').rstrip('号')
-        else:
-            reg_orderedid = '查看备案号： ' + string_regid
-#            print(reg_orderedid)
-        RegNumber_parsed.append(reg_orderedid)
-        return RegNumber_parsed
         
