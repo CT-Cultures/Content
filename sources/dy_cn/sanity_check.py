@@ -14,6 +14,7 @@ import re
 import numpy as np
 import os
 from datetime import date
+from pandas.tseries.offsets import MonthEnd
 
 dy_reg = Registration()
 
@@ -43,12 +44,60 @@ contents_of_registrations_raw = pd.read_csv('records/contents_of_registrations.c
 contents_of_registrations_raw['公示日期'].agg(dy_reg.parser.PubDate)
 contents_of_registrations_raw['公示日期']
 
-#%%
-contents_of_registrations_raw['公示批次名称'].agg(dy_reg.parser.PubTitle)
-contents_of_registrations['公示批次名称'] 
+#%% Pubtitle
+pubtitle = contents_of_registrations_raw['公示批次名称'].drop_duplicates().agg(dy_reg.parser.PubTitle).rename('本批次周期')
+check = contents_of_registrations_raw['公示批次名称'].drop_duplicates()
+#%% DateRange
 
-contents_of_registrations.columns
+def DateRange(pubttile: Series)-> datetime:
+    pubtitle_unique = pubtitle.drop_duplicates().rename('本批次周期')
+    pubtitle = pubtitle.to_frame()
+    pubtitle['上一批次周期'] = pubtitle['本批次周期'].shift(-1)
+    pubtitle['下一批次周期'] = pubtitle['本批次周期'].shift(1)
+    pubtitle.fillna(value='['', '', '', '']', inplace=True)
+    
+    dt_range = pubtitle.agg(gen_dr, axis=1)
 
+    def gen_dr(df_row: pd.DataFrame) -> pd.date_range:
+        df_row = df_row.astype('O')
+        start_yr = int(df_row['本批次周期'][0])
+        start_mon = int(df_row['本批次周期'][1])
+        
+        # 本批次 起始日期
+        if  df_row['本批次周期'][2] == u'上旬':
+            start_d = 1
+        elif df_row['本批次周期'][2] == u'中旬':
+            start_d = 11
+        elif df_row['本批次周期'][2] == u'整月':
+            start_d = 1
+        else:
+            start_d = 16
+            if df_row['上一批次周期'][4] == '中旬':
+                start_d = 21
+        start_date = date(start_yr, start_mon, start_d)
+        
+        # 本批次 结束日期
+        end_yr = int(df_row['本批次周期'][0])
+        end_mon = int(df_row['本批次周期'][3])
+        if df_row['本批次周期'][4] == u'中旬':
+            end_d = 20
+        elif df_row['本批次周期'][4] == u'下旬' or df_row['本批次周期'][4] == u'整月':
+            end_d = (date(end_yr, end_mon, 1) + MonthEnd(1)).day
+        else:
+            end_d = 15
+            if df_row['下一批次周期'][2] == '中旬':
+                end_d = 10
+        end_date = date(end_yr, end_mon, end_d)
+        dt_range = pd.date_range(start_date, end_date)
+        return  dt_range
+    
+    return dt_range
+
+test = pubtitle.agg(gen_dr, axis=1)
+
+DateRange()
+
+tt = (date(2010, 5, 1) + MonthEnd(1)).day
 #%%
 contents_of_registrations_raw['备案立项号'].agg(dy_reg.parser.RegType)
 
@@ -59,56 +108,6 @@ contents_of_registrations_refined = dy_reg.Refined_Records(update_first=False)
 contents_of_registrations_raw['备案立项号'].agg(dy_reg.parser.RegSequenceNo)
 #%%
 contents_of_registrations_raw.columns
-def pubtitle(pubtitle):
-        
-    pat = re.compile(u'关于.*全国')
-    pt = pat.search(pubtitle)
-    if pt:
-        pt = pt.group()
-        pt = pt.lstrip('关于').rstrip('全国')
-    else:
-        pt = np.nan
-    #2016年09月（下旬）10月（上旬）
-    #2020年01月下、02月
-    #2019年08月（上旬）
-    #2017年09月（下旬）、10月（上旬）
-    #2017年09月（中旬）
-    #2015年09月（下旬）、10月（上旬）
-    #2013年04月（下旬）、05月（上旬）
-    #2012年01月
-    #2011年12月（下旬）   
-    if pt:
-        yr, r = pt.split('年')[0], pt.split('年')[1]
-        ms = re.split('[）\)]', r)
-        if len(ms) == 1:
-            start_m = 
-    
-    return start_m
-        
-
-pubtitle('国家电影局关于2020年01月下、02月全国电影剧本（梗概）备案、立项公示的通知')
-
-t = '09月（下旬）10月（上旬）'
-t2 ='2012年01月'
-test =re.split('[）\)]', t)
-
-
-
-test = contents_of_registrations_raw['公示批次名称'].agg(pubtitle)  
-
-
-def issue_daterange(pubtitle: pd.Series):
-    pubtitle_unique = pubtitle.drop_duplicates()
-    pubtitle_unique_prev = pubtitle_unique.shift(-1).rename('上一期公示批次名称')
-    pubtitle_curr_prev = pd.concat([pubtitle_unique, pubtitle_unique_prev], axis=1)
-
-pubtitle_unique = contents_of_registrations_refined['公示批次名称'].drop_duplicates()
-pubtitle_unique_prev = pubtitle_unique.shift(-1).rename('上一期公示批次名称')
-pubtitle_curr_prev = pd.concat([pubtitle_unique, pubtitle_unique_prev], axis=1)
-
-
-
-
 
 
 

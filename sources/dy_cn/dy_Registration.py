@@ -704,72 +704,66 @@ class Parser_Registration(object):
         return reg_sequence_no
  
  ##########
-    def PubTitle(self, string_regpubtitle):
-#        sample = '国家电影局关于2019年02月（下旬）全国电影剧本（梗概）备案、立项公示的通知'
-#        sample2 = '国家电影局关于2019年02月（中旬）全国电影剧本（梗概）备案、立项公示的通知'
-#        sample3 = '国家电影局关于2019年01月（下旬）、02月（上旬）全国电影剧本（梗概）备案、立项公示的通知'
-#        sample4 = '国家新闻出版广电总局电影局关于2016年09月（下旬）10月（上旬）全国电影剧本（梗概）备案、立项公示的通知'
-#        sample5 = '广电总局电影局关于2011年10月(上旬)全国电影剧本（梗概）备案、立项公示的通知'
-#        sample6 = '广电总局电影局关于2011年11月(上旬)全国电影剧本（梗概）备案、立项公示的通知'
-#        sample7 = '广电总局电影局关于2011年09月(下旬)全国电影剧本（梗概）备案、立项公示的通知'
-#        sample8 = '广电总局电影局关于2011年09月（上旬）全国电影剧本（梗概）备案、立项公示的通知'
-#        sample9 = '广电总局电影局关于2014年09月下旬全国电影剧本（梗概）备案、立项公示的通知'
-#        sample1-= '国家电影局关于2020年01月下、02月全国电影剧本（梗概）备案、立项公示的通知'
+    def PubTitle(self, pubtitle: str) -> list:
+        """
+        This functions breaks the putitle down to start and end months
 
+        Parameters
+        ----------
+        pubtitle : str
+            DESCRIPTION.
 
-        pattern_year = re.compile(u"关于[0-9][0-9][0-9][0-9]年")
-        pattern_month = re.compile(u"年.*?月")
-        pattern_month_additional = re.compile(u"、[0-9][0-9]月")
-        pattern_month_additional2 = re.compile(u"）[0-9][0-9]月")
-        pattern_partofmonth = re.compile(u"（.*?旬）")
-        pattern_partofmonth_alt1 = re.compile(u"月(.*?旬)")
-        pattern_partofmonth_alt2 = re.compile(u"月.*?旬")
+        Returns
+        -------
+        list[yr:str, start_m:str, start_mq: str, end_m: str, end_mq: str]
+            DESCRIPTION.
 
-        year = pattern_year.search(string_regpubtitle)
-        if year:
-            year = year.group().lstrip('关于').rstrip('年')
+        """
+            
+        pat = re.compile(u'关于.*全国')
+        pt = pat.search(pubtitle)
+        if pt:
+            pt = pt.group()
+            pt = pt.lstrip('关于').rstrip('全国')
         else:
-            year = "没有年"
-
-        month = pattern_month.search(string_regpubtitle)
-        if month:
-            month = month.group().lstrip('年').rstrip('月')
-            month_add = pattern_month_additional.search(string_regpubtitle)
-            month_add2 = pattern_month_additional2.search(string_regpubtitle)
-            if month_add:
-                month_add = month_add.group().lstrip(u'、').rstrip('月')
-                month = month + '、' + month_add
-            if month_add2:
-                month_add = month_add2.group().lstrip(u'）').rstrip('月')
-                month = month + '、' + month_add
-        else:
-            month = "没有月"
-
-        partofmonth = pattern_partofmonth.findall(string_regpubtitle)
-        partofmonth_alt1 = pattern_partofmonth_alt1.findall(string_regpubtitle)
-        partofmonth_alt2 = pattern_partofmonth_alt2.findall(string_regpubtitle)
-        if partofmonth:
-            if len(partofmonth) == 1:
-                partofmonth = partofmonth[0].lstrip('（').rstrip('）')
-            elif len(partofmonth) == 2:
-                part1 = partofmonth[0].lstrip('（').rstrip('）')
-                part2 = partofmonth[1].lstrip('（').rstrip('）')
-                partofmonth = part1 + '、' + part2
-        elif partofmonth_alt1:
-            if len(partofmonth_alt1) == 1:
-                partofmonth = partofmonth_alt1[0].lstrip('月(').rstrip(')')
-            elif len(partofmonth_alt1) == 2:
-                part1 = partofmonth_alt1[0].lstrip('月(').rstrip(')')
-                part2 = partofmonth_alt1[1].lstrip('月(').rstrip(')')
-                partofmonth = part1 + '、' + part2
-        elif partofmonth_alt2:
-            if len(partofmonth_alt2) == 1:
-                partofmonth = partofmonth_alt2[0].lstrip('月(').rstrip(')')
-            elif len(partofmonth_alt2) == 2:
-                part1 = partofmonth_alt2[0].lstrip('月(').rstrip(')')
-                part2 = partofmonth_alt2[1].lstrip('月(').rstrip(')')
-                partofmonth = part1 + '、' + part2
-        else:
-            partofmonth = "没有旬"
-        return [year, month, partofmonth]
+            pt = np.nan
+        #2016年09月（下旬）10月（上旬）
+        #2020年01月下、02月
+        #2019年08月（上旬）
+        #2017年09月（下旬）、10月（上旬）
+        #2017年09月（中旬）
+        #2015年09月（下旬）、10月（上旬）
+        #2013年04月（下旬）、05月（上旬）
+        #2012年01月
+        #2011年12月（下旬）   
+        #2020年01月（上旬、中旬）
+        if pt:
+            yr, m = pt.split('年')[0], pt.split('年')[1]
+            m  = re.split('[）、]', m)
+            m = [n for n in m if n != '']
+            
+            start_m = m[0].split('月')[0]
+            if u'上' in m[0]:
+                start_mq = u'上旬'
+            elif u'中' in m[0]:
+                start_mq = u'中旬'
+            elif u'下' in m[0]:
+                start_mq = u'下旬'
+            else:
+                start_mq = '整月'
+            
+            end_m = m[-1].split('月')[0]
+            if u'月' not in m[-1]:
+                end_m = start_m
+            if u'上' in m[-1]:
+                end_mq = u'上旬'
+            elif u'中' in m[-1]:
+                end_mq = u'中旬'
+            elif u'下' in m[-1]:
+                end_mq = u'下旬'
+            else:
+                end_mq = '整月'
+               
+        return [yr, start_m, start_mq, end_m, end_mq]
+##########
         
