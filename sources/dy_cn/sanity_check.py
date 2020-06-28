@@ -9,17 +9,20 @@ Created on Tue Jun  9 03:07:32 2020
 from dy_Registration import Registration
 import pandas as pd
 import re
-
+import matplotlib as mp
+import matplotlib.pyplot as plt
+plt.rcParams['figure.figsize'] = [15, 9]
+mp.rcParams['font.sans-serif'] = ['KaiTi']
+import math
+from datetime import timedelta
 
 import numpy as np
 import os
-from datetime import date
-from pandas.tseries.offsets import MonthEnd
 
 dy_reg = Registration()
 
 #%%
-links_of_pages = dy_reg.links_of_pages
+links_of_pages = dy_reg.links_of_pages()
 #%% links opublications
 links_of_publications = dy_reg.links_of_publications(savefile=True) # All Records
 #links_of_new_publications = dy_reg.links_of_new_publications()
@@ -34,82 +37,81 @@ links_of_registrations = dy_reg.links_of_registrations(links_of_publications, sa
 contents_of_new_registrations = dy_reg.contents_of_new_registrations()
 
 #%% update_records
-
 up_to_date_records_raw = dy_reg.update_records(save_update=False)
 
-#%%
+#%% Raw Records
 contents_of_registrations_raw = pd.read_csv('records/contents_of_registrations.csv', encoding='utf-8-sig')
 
-#%%\
-contents_of_registrations_raw['公示日期'].agg(dy_reg.parser.PubDate)
-contents_of_registrations_raw['公示日期']
-
-#%% Pubtitle
-pubtitle = contents_of_registrations_raw['公示批次名称'].drop_duplicates().agg(dy_reg.parser.PubTitle).rename('本批次周期')
-check = contents_of_registrations_raw['公示批次名称'].drop_duplicates()
-#%% DateRange
-
-def DateRange(pubttile: Series)-> datetime:
-    pubtitle_unique = pubtitle.drop_duplicates().rename('本批次周期')
-    pubtitle = pubtitle.to_frame()
-    pubtitle['上一批次周期'] = pubtitle['本批次周期'].shift(-1)
-    pubtitle['下一批次周期'] = pubtitle['本批次周期'].shift(1)
-    pubtitle.fillna(value='['', '', '', '']', inplace=True)
-    
-    dt_range = pubtitle.agg(gen_dr, axis=1)
-
-    def gen_dr(df_row: pd.DataFrame) -> pd.date_range:
-        df_row = df_row.astype('O')
-        start_yr = int(df_row['本批次周期'][0])
-        start_mon = int(df_row['本批次周期'][1])
-        
-        # 本批次 起始日期
-        if  df_row['本批次周期'][2] == u'上旬':
-            start_d = 1
-        elif df_row['本批次周期'][2] == u'中旬':
-            start_d = 11
-        elif df_row['本批次周期'][2] == u'整月':
-            start_d = 1
-        else:
-            start_d = 16
-            if df_row['上一批次周期'][4] == '中旬':
-                start_d = 21
-        start_date = date(start_yr, start_mon, start_d)
-        
-        # 本批次 结束日期
-        end_yr = int(df_row['本批次周期'][0])
-        end_mon = int(df_row['本批次周期'][3])
-        if df_row['本批次周期'][4] == u'中旬':
-            end_d = 20
-        elif df_row['本批次周期'][4] == u'下旬' or df_row['本批次周期'][4] == u'整月':
-            end_d = (date(end_yr, end_mon, 1) + MonthEnd(1)).day
-        else:
-            end_d = 15
-            if df_row['下一批次周期'][2] == '中旬':
-                end_d = 10
-        end_date = date(end_yr, end_mon, end_d)
-        dt_range = pd.date_range(start_date, end_date)
-        return  dt_range
-    
-    return dt_range
-
-test = pubtitle.agg(gen_dr, axis=1)
-
-DateRange()
-
-tt = (date(2010, 5, 1) + MonthEnd(1)).day
-#%%
-contents_of_registrations_raw['备案立项号'].agg(dy_reg.parser.RegType)
-
-contents_of_registrations_raw[contents_of_registrations_raw['备案立项号'].isna()]
-#%%
+#%% Refined Records
 contents_of_registrations_refined = dy_reg.Refined_Records(update_first=False)
+
+#%% Columns
+contents_of_registrations_refined.columns
+dtype = {   '备案立项号': 'str',
+            '片名': 'str', 
+            '备案单位': 'str',
+            '编剧': 'str',
+            '备案结果': 'str',
+            '备案地': 'str',
+            '梗概': 'str',
+            '公示日期': 'datetime64[ns]',
+            '公示批次名称': 'str',
+            '制作表链接': 'str',
+            '公示批次链接': 'str',
+            '公示年': 'Int64',
+            '公示批次起始': 'str',
+            '类型': 'str',
+            '备案申请年份': 'int64',
+            '备案立项年度顺序号': 'Int64',
+            '公示覆盖期间': 'object',
+            '公示覆盖天数': 'int64'
+         }
 #%%
-contents_of_registrations_raw['备案立项号'].agg(dy_reg.parser.RegSequenceNo)
-#%%
-contents_of_registrations_raw.columns
+
+def complete_dt_by_year_by_type(df):
+    df_copy = df.copy()
+    df_copy['备案公示日期预测'] = np.nan
+    df_copy['备案通过日偏差'] = np.nan
+    df_tmp = df_copy.loc[:,['备案申请年份', '类型','备案立项年度顺序号','公示日期']]
+    df_tmp.set_index(['备案申请年份', '类型'], inplace=True)
+    #df_tmp = df_tmp.sort_values(by=['备案申请年份', '类型','备案立项年度顺序号'], ascending=True)
+    df_tmp = df_tmp.sort_index(level=0)
+    indicies = df_tmp.index.unique()
+    for idx in indicies:
+        if np.nan in idx:
+            continue
+        else:
+            #print(idx)
+            df1 = df_tmp.loc[idx,:]
+            if df1.shape[0] > 1:
+                #df1 = df1.sort_values(by='备案立项年度顺序号', ascending=True)
+                df_dt = dy_reg.estimate.complete_dt(df1)
+                df_merged = pd.merge(df, df_dt, on=['备案申请年份', '类型', '备案立项年度顺序号'], how='left')
+                df_copy.update(df_merged)
+    return df_copy
+
+testing = complete_dt_by_year_by_type(contents_of_registrations_refined)
 
 
 
 
+df_copy = contents_of_registrations_refined.copy()
+df_copy['备案公示日期预测'] = np.nan
+df_copy['备案通过日偏差'] = np.nan
+df_tmp = df_copy.loc[:,['备案申请年份', '类型','备案立项年度顺序号','公示日期']]
+df_tmp.set_index(['备案申请年份', '类型'], inplace=True)
+df_tmp = df_tmp.sort_index(level=0)
+indicies = df_tmp.index.unique()
 
+for idx in indicies:
+    if np.nan in idx:
+        continue
+    else:
+        df1 = df_tmp.loc[idx,:]
+        print(df1)
+
+df_dt = dy_reg.estimate.complete_dt(df1)
+df_merged = pd.merge(contents_of_registrations_refined, df_dt, on=['备案申请年份', '类型', '备案立项年度顺序号'], how='left')
+
+contents_of_registrations_refined.dtypes
+# quantile problem
