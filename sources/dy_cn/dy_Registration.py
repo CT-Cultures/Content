@@ -14,8 +14,16 @@ import numpy as np
 import pandas as pd
 
 import datetime
+from datetime import date
+from datetime import timedelta
+from pandas.tseries.offsets import MonthEnd
 import os
 
+import matplotlib.pyplot as plt
+
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import make_pipeline
 ######################################################################
 class Registration(object):
  
@@ -39,6 +47,9 @@ class Registration(object):
         # Call Parser Class
         self.parser = Parser_Registration()
         
+        # Call Estimate Class
+        self.estimate = Estimate_Registration()
+        
 ##########        
     def save_records(self,
                      records: pd.DataFrame, 
@@ -59,7 +70,9 @@ class Registration(object):
 
         
 ##########
-    def links_of_pages(self) -> pd.DataFrame:
+    def links_of_pages(self, 
+                       filename: str = "links_of_pages",
+                       savefile: bool = False) -> pd.DataFrame:
         """This function grabs all landing pages of movie registrations
         @return links_of_pages: pd.DataFrame
         """
@@ -76,6 +89,9 @@ class Registration(object):
             links_of_pages.columns = ['links_of_pages']
         else:
             links_of_pages = pd.DataFrame(columns =['links_of_pages'])
+
+        if savefile:
+            self.save_records(links_of_pages, filename, backup=True)
             
         return links_of_pages
 
@@ -515,12 +531,22 @@ class Registration(object):
         #======== REFININIG RECORDS
         contents_of_registrations_refined = contents_of_registrations_raw.copy()
         
+        # Convert to datetiime
+        contents_of_registrations_refined['公示日期'] = pd.to_datetime(contents_of_registrations_refined['公示日期'])
+        
+        # Extract Publish Year
+        contents_of_registrations_refined['公示年'] = contents_of_registrations_refined['公示日期'].apply(lambda x: x.year)
+
         # Corrrect Publication Title Errors
         contents_of_registrations_refined['公示批次名称'] = contents_of_registrations_raw.agg(
             self.parser.correct_publication_title_errors, axis=1)
-        
+               
         # Drop duplicates after corrections
         contents_of_registrations_refined.drop_duplicates(inplace=True)
+
+        # Extract parsed Pubtitle
+        contents_of_registrations_refined['公示批次起始'] = contents_of_registrations_refined['公示批次名称'].agg(self.parser.PubTitle)
+        contents_of_registrations_refined['公示批次起始'] = contents_of_registrations_refined['公示批次起始'].apply(lambda x: tuple(x))
         
         # Parse Film Type
         contents_of_registrations_refined['类型'] = contents_of_registrations_raw['备案立项号'].agg(
@@ -533,13 +559,23 @@ class Registration(object):
         # Extract Reg Sequence Number
         contents_of_registrations_refined['备案立项年度顺序号'] = contents_of_registrations_raw['备案立项号'].agg(
             self.parser.RegSequenceNo)
+           
+        # Correct pre_2011 备案立项年度顺序号 errors
+        contents_of_registrations_refined['备案立项年度顺序号'] = contents_of_registrations_refined.agg(
+            self.parser.correct_pre_2011_error, axis=1)
         
-        # Get Previous Pubtitle
-        contents_of_registrations_refined['上期公示批次名称'] = contents_of_registrations_refined['公示批次名称'].shift(1)
+        # Extract PubIssue Date Range
+        contents_of_registrations_refined['公示覆盖期间'] = self.parser.DateRange(contents_of_registrations_raw['公示批次名称'])
         
-        # Extract Reg Sequence Number
-        return contents_of_registrations_refined
     
+        # Calculate Number of days covered in Issue
+        contents_of_registrations_refined['公示覆盖天数'] = contents_of_registrations_refined['公示覆盖期间'].apply(lambda x: len(x))
+        
+        # Convert dtypes
+        contents_of_registrations_refined = contents_of_registrations_refined.convert_dtypes()
+        
+        # Return
+        return contents_of_registrations_refined
 ##########
 
 ##########==========##########==========##########==========##########==========
@@ -582,7 +618,37 @@ class Parser_Registration(object):
             pubtitle = publication_title_errors[publink]
             
         return pubtitle
+##########
+    def correct_pre_2011_error(self, df_row: pd.DataFrame) -> str:
+        """
+        This functions corrects pre 2011 errors, for use with agg/apply along axis=1
+
+        Parameters
+        ----------
+        df_row : pd.DataFrame
+            DESCRIPTION.
+
+        Returns
+        -------
+        str
+            DESCRIPTION.
+
+        """
+        pre_2011_sequence_errors = {
+        'http://dy.chinasarft.gov.cn/shanty.deploy/blueprint.nsp?id=0132282c2ff6113b402881a732237dea&templateId=012a2e051030004740284c812a2d62df':
+        966,
         
+        'http://dy.chinasarft.gov.cn/shanty.deploy/blueprint.nsp?id=0132282c2fd21139402881a732237dea&templateId=012a2e051030004740284c812a2d62df':
+        38
+        }
+            
+        publink, sequence_no = df_row['制作表链接'], df_row['备案立项年度顺序号']
+        if publink in pre_2011_sequence_errors:
+            sequence_no = pre_2011_sequence_errors[publink]
+            
+        return sequence_no    
+        
+            
 ##########     
     def PubDate(self, regpubdate: str) -> datetime:
         """
@@ -670,13 +736,14 @@ class Parser_Registration(object):
         if reg_submit_year:
             reg_submit_year = reg_submit_year.group()
             reg_submit_year = reg_submit_year.lstrip('[\[【（(]').rstrip('[)）】\]]')
+            reg_submit_year = int(reg_submit_year)
         else:
             reg_submit_year = np.nan
         
         return reg_submit_year
 
 ##########    
-    def RegSequenceNo(self, regid: str) -> str:
+    def RegSequenceNo(self, regid: str) -> int:
         """
         This function extracts the reg sequence number from RegId.
 
@@ -699,18 +766,19 @@ class Parser_Registration(object):
         if reg_sequence_no:
             reg_sequence_no = reg_sequence_no.group()
             reg_sequence_no = reg_sequence_no.lstrip('[第\]）]').rstrip('[号]')
+            reg_sequence_no = int(reg_sequence_no)
         else:
             reg_sequence_no = np.nan            
         return reg_sequence_no
  
  ##########
-    def PubTitle(self, pubtitle: str) -> list:
+    def PubTitle(self, pubtitle: str) -> tuple:
         """
         This functions breaks the putitle down to start and end months
 
         Parameters
         ----------
-        pubtitle : str
+        pubtitle : strss
             DESCRIPTION.
 
         Returns
@@ -765,5 +833,137 @@ class Parser_Registration(object):
                 end_mq = '整月'
                
         return [yr, start_m, start_mq, end_m, end_mq]
+    
 ##########
+    def DateRange(self, pubtitle: pd.Series)-> pd.DatetimeIndex:
+        """
+        This Function extracts date range from Pubtitle, required pubtitle parser.
+    
+        Parameters
+        ----------
+        pubtitle : pd.Series
+            DESCRIPTION.
+    
+        Returns
+        -------
+        pd.DatetimeIndex
+            DESCRIPTION.
+    
+        """
+        pubtitle_unique = pubtitle.drop_duplicates().rename('本批次周期')
+        pubtitle_unique = pubtitle_unique.agg(self.PubTitle)
+        pubtitle_unique = pubtitle_unique.to_frame()
+        pubtitle_unique['上一批次周期'] = pubtitle_unique['本批次周期'].shift(-1)
+        pubtitle_unique['下一批次周期'] = pubtitle_unique['本批次周期'].shift(1)
+        pubtitle_unique.fillna(value='['', '', '', '']', inplace=True)
         
+        def gen_dr(df_row: pd.DataFrame) -> pd.date_range:
+            start_yr = int(df_row['本批次周期'][0])
+            start_mon = int(df_row['本批次周期'][1])
+            
+            # 本批次 起始日期
+            if  df_row['本批次周期'][2] == u'上旬':
+                start_d = 1
+            elif df_row['本批次周期'][2] == u'中旬':
+                start_d = 11
+            elif df_row['本批次周期'][2] == u'整月':
+                start_d = 1
+            else:
+                start_d = 16
+                if df_row['上一批次周期'][4] == '中旬':
+                    start_d = 21
+            start_date = date(start_yr, start_mon, start_d)
+            
+            # 本批次 结束日期
+            end_yr = int(df_row['本批次周期'][0])
+            end_mon = int(df_row['本批次周期'][3])
+            if df_row['本批次周期'][4] == u'中旬':
+                end_d = 20
+            elif df_row['本批次周期'][4] == u'下旬' or df_row['本批次周期'][4] == u'整月':
+                end_d = (date(end_yr, end_mon, 1) + MonthEnd(1)).day
+            else:
+                end_d = 15
+                if df_row['下一批次周期'][2] == '中旬':
+                    end_d = 10
+            end_date = date(end_yr, end_mon, end_d)
+            dt_range = pd.date_range(start_date, end_date)
+            return  dt_range
+        
+        dt_range = pubtitle_unique.agg(gen_dr, axis=1) #Series
+        dt_range.rename('公示覆盖期间', inplace=True)
+        
+        df = pd.concat([pubtitle, dt_range], axis=1)
+        df['公示覆盖期间'].fillna(method='ffill', inplace=True)
+        
+        return df['公示覆盖期间']        
+##########==========##########==========##########==========##########==========
+class Estimate_Registration(object):
+##########
+    def __init__(self):
+        super(Estimate_Registration, self).__init__()
+
+
+##########        
+    def complete_dt(self,
+                    df: pd.DataFrame, 
+                    comprehensive: bool = False, 
+                    plot: bool = False) -> pd.DataFrame:
+        """
+        This function estimates the registration completion time.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            df with columns  ['公示日期', '备案立项年度顺序号']
+        comprehensive : bool, optional
+            DESCRIPTION. The default is False.
+        plot : bool, optional
+            DESCRIPTION. The default is False.
+
+        Returns
+        -------
+        pd.DataFrame
+            DESCRIPTION.
+
+        """        
+        # narrow down 
+        #df_tmp = df.groupby('公示日期')['备案立项年度顺序号'].max().reset_index()
+        if df.shape[0] > 5:
+            #df_tmp = df.groupby('公示日期')['备案立项年度顺序号'].quantile(0.65).reset_index()
+            df_tmp = df.groupby('公示日期')['备案立项年度顺序号'].describe(percentiles=[0.65])['65%'].apply(lambda x: int(x))
+            df_tmp = df_tmp.rename('备案立项年度顺序号').reset_index()
+            dt_min = df_tmp.loc[:,'公示日期'].min()
+            df_tmp['自最早天数'] = df_tmp.loc[:,'公示日期'].apply(lambda x: (x-dt_min).days)
+            exclude_beyond = df_tmp.loc[:,'备案立项年度顺序号'].quantile(0.9)
+            cut_off_day = df_tmp.loc[df_tmp['备案立项年度顺序号'] >= exclude_beyond, '自最早天数'].min()
+            df_tmp = df_tmp.loc[df_tmp['自最早天数'] < cut_off_day]
+        else:
+            df_tmp = df[['公示日期', '备案立项年度顺序号']]
+            dt_min = df_tmp['公示日期'].min()
+            df_tmp.loc[:,'自最早天数'] = df_tmp.loc[:,'公示日期'].apply(lambda x: (x-dt_min).days)
+            
+        # Fitting, Poly with 3 degrees
+        df_tmp = df_tmp.dropna()
+        X_train = df_tmp.loc[:,'备案立项年度顺序号'].tolist()
+        X_train = np.array(X_train).reshape(-1, 1)
+        y_train = df_tmp.loc[:,'自最早天数']
+        model = model = make_pipeline(PolynomialFeatures(1), Ridge())
+        fitted = model.fit(X_train, y_train)
+        
+        X_pred = np.array(range(1, int(round(df.loc[:,'备案立项年度顺序号'].max()+1)))).reshape(-1, 1)
+        y_pred = fitted.predict(X_pred)
+        y_pred = np.array([0 if y < 0 else int(round(y)) for y in y_pred])
+        x2y = dict(np.array([np.squeeze(X_pred), y_pred], dtype='int').T)
+        
+        if plot:
+            plt.plot(X_pred, y_pred)
+            plt.plot(X_train, y_train)      
+        
+        df['自最早天数估计'] = df.loc[:,'备案立项年度顺序号'].apply(lambda x: x2y[x])
+        df['备案公示日期预测'] = df.loc[:, '自最早天数估计'].apply(lambda x: dt_min + timedelta(days=x))
+        df['备案通过日偏差'] = df.loc[:, '公示日期'] - df.loc[:, '备案公示日期预测'] 
+        df.loc[:, '备案通过日偏差'] =  df.loc[:, '备案通过日偏差'].apply(lambda x: x.days)
+           
+        if comprehensive:
+            return df
+        return df[['备案立项年度顺序号', '公示日期', '备案公示日期预测', '备案通过日偏差']]
