@@ -115,3 +115,5 @@ df_merged = pd.merge(contents_of_registrations_refined, df_dt, on=['备案申请
 
 contents_of_registrations_refined.dtypes
 # quantile problem
+
+contents_of_registrations_refined[contents_of_registrations_refined['备案申请年份'].isna()]

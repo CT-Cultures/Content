@@ -21,6 +21,17 @@ class Screenplay(object):
         self.sc = sc
         self.elements = Elements()
         self.reformat = Reformat()
+        self.element2basestyle = {
+                    'text':'Normal Text',
+                    'h': 'Scene Heading',
+                    'a': 'Action',
+                    'c': 'Character',
+                    'p': 'Parenthetical',
+                    'd': 'Dialogue',
+                    't': 'Transition',
+                    's': 'Shot',
+                    'uc': 'Unspoken Character'
+                    }
         
         # Scene heading element
     
@@ -126,7 +137,7 @@ class Elements(object):
                               identify_type_first: bool = False) -> pd.DataFrame:
         if identify_type_first:
             sc = self.identify_scene_heading(sc, pattern)
-        sc.loc[sc['ptype'] == 'h', 'h_inout'] = sc.loc[sc['ptype'] == 'h', 'pcontent'].str.extract(pattern).iloc[:, 0]
+        sc.loc[sc['ptype'] == 'h', 'h_inout'] = sc.loc[sc['ptype'] == 'h', 'pcontent'].str.extract(pattern).iloc[:, 0].str.lstrip(' ')
         #sc['h_inout'].fillna(method='ffill', inplace=True)
         return sc
         pass
@@ -224,70 +235,33 @@ class Reformat(object):
 
         '''
         sc['formatted'] = None
-        element2basestyle = {
-                            'text':'Normal Text',
-                            'h': 'Scene Heading',
-                            'a': 'Action',
-                            'c': 'Character',
-                            'p': 'Parenthetical',
-                            'd': 'Dialogue',
-                            't': 'Transition',
-                            's': 'Shot',
-                            'uc': 'Unspoken Character'
-                            }
+
         header_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        header_document = '<document version="30" type="Open Screenplay Format document">\n'
-        document_info = '\t<info pagecount="" uuid=""8927aa47-d7f7-4110-9d7d-f385abd8e001""/>\n' \
-            +   '\t<settings show_all_revisions="false" show_revisions="false" revision="0" dialogue_locked="false"' \
-            +   ' dialoguenumber_format="(#)" dialoguenumber_start="1" dialogue_numbering="false" scenes_locked="false"' \
-            +   ' scenenumber_position="3" scenenumber_format="#" scenenumber_start="1" scenenumber_skip_io="false"' \
-            +   ' scenenumber_mode="1AB" scene_numbering="false" pagenumber_mode="1AB" pagenumber_start="1"' \
-            +   ' pages_locked="false" footer_first_page="false" header_first_page="false" footer_alignment="3"' \
-            +   ' header_alignment="3" page_footer="" page_header="#." scene_time_separator=" - " omitted_text="OMITTED"' \
-            +   ' auto_omit_scenes="false" number_continued="true" continued_text="CONTINUED" scenes_continue="false"' \
-            +   ' more_text="(MORE)" cont_text="(cont\'d)" dialogue_pagebreaks="true" dialogue_continues="true"' \
-            +   'break_on_sentences="true" element_spacing="1.00" normal_linesperinch="6.0" margin_right="317"' \
-            +   'margin_left="317" margin_bottom="220" margin_top="317" page_height="2794" page_width="2159"/>' \
-            +   '\t<fadein_settings navigator_pagecount="2" navigator_show="1" index_cards_use_colors="true"' \
-            +   'index_cards_use_folders="true" index_cards_text_size="1" index_cards_show="2" last_position="9, 0"' \
-            +   'saved_with=""/>\n'
-            
-        header_format = '\t<styles>\n' \
-            +   '\t\t<style size="12" font="Courier New" label="Normal Text" builtin_index="0" builtin="1" name="Normal Text"/>\n' \
-            +   '\t\t<style size="12" font="Courier New" label="Scene Heading" builtin_index="1" builtin="1" name="Scene Heading"' \
-            +   'allcaps="1" keepwithnext="1" spacebefore="2.0" style_tab_after="Action" style_enter="Action" basestylename="Normal Text"/>' \
-            +   '\t\t<style size="12" font="Courier New" label="Action" builtin_index="2" builtin="1" name="Action" spacebefore="1.0"' \
-            +   'basestylename="Normal Text" style_tab_before="Character"/>\n' \
-            +   '\t\t<style size="12" font="Courier New" label="Character" builtin_index="3" builtin="1" name="Character" allcaps="1"' \
-            +   'keepwithnext="1" spacebefore="1.0" style_tab_after="Parenthetical" style_enter="Dialogue" basestylename="Normal Text"' \
-            +   'style_tab_before="Action" leftindent="635"/>\n' \
-            +   '\t\t<style size="12" font="Courier New" label="Parenthetical" builtin_index="4" builtin="1" name="Parenthetical" keepwithnext="1"' \
-            +   'style_tab_after="Dialogue" style_enter="Dialogue" basestylename="Normal Text" style_tab_before="Dialogue" leftindent="508"' \
-            +    ' rightindent="508"/>\n' \
-            +   '\t\t<style size="12" font="Courier New" label="Dialogue" builtin_index="5" builtin="1" name="Dialogue"' \
-            +   'style_tab_after="Parenthetical" style_enter="Action" basestylename="Normal Text" style_tab_before="Parenthetical"' \
-            +   'leftindent="330" rightindent="254"/>\n' \
-            +   '\t\t<style size="12" font="Courier New" label="Transition" builtin_index="6" builtin="1" name="Transition" allcaps="1"' \
-            +   'spacebefore="1.0" style_tab_after="Action" style_enter="Scene Heading" basestylename="Normal Text" leftindent="1016"' \
-            +   'rightindent="127" align="right"/>\n' \
-            +   '\t\t<style size="12" font="Courier New" label="Shot" builtin_index="7" builtin="1" name="Shot" allcaps="1" keepwithnext="1"' \
-            +   'spacebefore="1.0" style_tab_after="Action" style_enter="Action" basestylename="Normal Text"/>\n' \
-            +   '\t\t<header_style basestylename="Normal Text"/>\n' \
-            +   '\t\t<footer_style basestylename="Normal Text"/>\n' \
-            +   '\t</styles>\n'
+        header_document = '<document type="Open Screenplay Format document" version="30">\n'
+        document_info = '\t<info>\n\t</info>\n'            
+        header_format = '\t<styles>\n\t</styles>\n'
         header_paragraphs = '\t<paragraphs>\n'
         
         footer_paragraphs = '\t</paragraphs>\n'
-        section_list = '\t<list>\n\t</list>\n'
+        section_titlepage = '\t<titlepage>\n\t</titlepage>\n'
+        section_lists = '\t<lists>\n\t</lists>\n'
         footer_document = '</document>\n'
             
         sc = self.heading(sc)
         sc = self.action(sc)
         sc = self.dialog(sc)
-        
-        formatted_output = header_xml + header_document + header_format + header_paragraphs \
-            + sc['formatted'].sum() + footer_paragraphs + section_list + footer_document
-            
+
+        formatted_output = header_xml \
+                         + header_document \
+                         + document_info \
+                         + header_format \
+                         + header_paragraphs \
+                         + sc['formatted'].sum() \
+                         + footer_paragraphs \
+                         + section_titlepage \
+                         + section_lists \
+                         + footer_document \
+                             
         if save:
             with codecs.open(file_path, "w", 'utf-8-sig') as f:
                 print(formatted_output, file=f)
@@ -311,7 +285,7 @@ class Reformat(object):
     
     def action(self, sc: pd.DataFrame) -> pd.DataFrame:
         sc.loc[sc['ptype'] == 'a', 'formatted'] = \
-            sc.loc[sc['ptype'] == 'a', 'pcontent'].apply(lambda x: str(x).lstrip('\s').rstrip('\s'))
+            sc.loc[sc['ptype'] == 'a', 'pcontent'].apply(lambda x: str(x).lstrip('\s').rstrip('\s').replace('&', '&amp;'))
         sc.loc[sc['ptype'] == 'a', 'formatted'] = sc.loc[sc['ptype'] == 'a', 'formatted'].apply(
             lambda x: '\t\t<para>\n\t\t\t<style basestylename="Action"/>\n\t\t\t<text>'
                     + str(x)
@@ -342,7 +316,7 @@ class Reformat(object):
         
         sc.loc[(sc['ptype'] == 'd') & (~sc['d_dialog_parenthesis'].isna()), 'formatted'] = \
               sc.loc[(sc['ptype'] == 'd') & (~sc['d_dialog_parenthesis'].isna()), 'formatted'] \
-            + sc.loc[(sc['ptype'] == 'd') & (~sc['d_dialog_parenthesis'].isna())].agg(format_d_dialog, axis=1)
+            + sc.loc[(sc['ptype'] == 'd') & (~sc['d_dialog_parenthesis'].isna())].agg(self.format_d_dialog, axis=1)
                         
         return sc
     
@@ -400,29 +374,8 @@ docx = sc.elements.identify_dialog_dialog(docx, pattern=r'[:：](.*)')
                                        
 
 # Reformat to openxml
-output = sc.reformat.to_openxml(docx, save=True, file_path ='OUTPUT/wanglai.xml')
-print(output)
+#output = sc.reformat.to_openxml(docx, save=True, file_path ='OUTPUT/wanglai.xml')
+#print(output)
 
-#%%
-dp = docx.loc[docx['ptype'] == 'd', 'd_dialog'].str.extractall(r'[（(](.*?)[）)]').reset_index().groupby('level_0')[0].agg(';'.join).str.split(';')
-dp = dp.rename('d_parenthesis')
-docx['d_parenthesis'].update(dp)
-
-d_dialog_w_p = docx.loc[~docx['d_parenthesis'].isna(), 'd_dialog'].str.split(r'[（(].*?[）)]')
-
-d_dialog_w_p
-dp
-
-d_dialog = ''
-for ds, ps in zip(d_dialog_w_p, dp):
-    for i, d in enumerate(ds):
-        if i == 0:
-            d_dialog = d_dialog + d
-        else:
-            d_dialog = d_dialog + '(' + ps[i-1] + ')' + d
-
-print(d_dialog)
-        
-    print(d, p)
 #%% 
-sc.reformat.header.header_format
+docx['formatted'].sum().replace('&', '&amp;')
