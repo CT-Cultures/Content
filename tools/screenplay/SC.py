@@ -4,6 +4,7 @@ Created on Mon Feb 17 00:31:27 2020
 
 @author: VXhpUS
 """
+
 import numpy as np
 import pandas as pd
 import re
@@ -13,14 +14,15 @@ from xml.dom import minidom
 import lxml.etree as et
 import codecs
 
-#%%
+#%% Class Screenplay
 class Screenplay(object):
     
-    def __init__(self, sc: str = None):      
+    def __init__(self, sc: str = None):   
+
         super(Screenplay, self).__init__()
         self.sc = sc
         self.elements = Elements()
-        self.reformat = Reformat()
+        self.reformat = Reformat.to_OpenXML()
         self.element2basestyle = {
                     'text':'Normal Text',
                     'h': 'Scene Heading',
@@ -36,10 +38,12 @@ class Screenplay(object):
         # Scene heading element
     
     def open(self, scpath: str):
-
         pass
     
-    def read_docx(self, filepath: str, sctype: str =None) -> pd.DataFrame:
+    def read_openxml(self, filepath: str) -> pd.DataFrame:
+        pass
+    
+    def read_docx(self, filepath: str) -> pd.DataFrame:
         '''
         This function reads word docx into a screenplay structured pd.DataFrame, 
         oneline per row.
@@ -213,169 +217,147 @@ class Elements(object):
 class Reformat(object):
     
     def __init__(self):
-        super(Reformat, self).__init__()      
+        super(Reformat, self).__init__()
     
-    def to_openxml(self, sc: pd.DataFrame, save: bool = False, file_path: str  = None) -> str:
-        '''
+    class to_OpenXML(object):
         
-
-        Parameters
-        ----------
-        sc : pd.DataFrame
-            DESCRIPTION.
-        save : str, optional
-            DESCRIPTION. The default is None.
-        file_path : str, optional
-            DESCRIPTION. The default is None.
-
-        Returns
-        -------
-        str
-            DESCRIPTION.
-
-        '''
-        sc['formatted'] = None
-
-        header_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        header_document = '<document type="Open Screenplay Format document" version="30">\n'
-        document_info = '\t<info>\n\t</info>\n'            
-        header_format = '\t<styles>\n\t</styles>\n'
-        header_paragraphs = '\t<paragraphs>\n'
-        
-        footer_paragraphs = '\t</paragraphs>\n'
-        section_titlepage = '\t<titlepage>\n\t</titlepage>\n'
-        section_lists = '\t<lists>\n\t</lists>\n'
-        footer_document = '</document>\n'
+        def __init__(self):
+            pass
+    
+        def to_openxml(self, sc: pd.DataFrame, save: bool = False, file_path: str  = None) -> str:
+            '''
             
-        sc = self.heading(sc)
-        sc = self.action(sc)
-        sc = self.dialog(sc)
-
-        formatted_output = header_xml \
-                         + header_document \
-                         + document_info \
-                         + header_format \
-                         + header_paragraphs \
-                         + sc['formatted'].sum() \
-                         + footer_paragraphs \
-                         + section_titlepage \
-                         + section_lists \
-                         + footer_document \
-                             
-        if save:
-            with codecs.open(file_path, "w", 'utf-8-sig') as f:
-                print(formatted_output, file=f)
-            f.close()
+    
+            Parameters
+            ----------
+            sc : pd.DataFrame
+                DESCRIPTION.
+            save : str, optional
+                DESCRIPTION. The default is None.
+            file_path : str, optional
+                DESCRIPTION. The default is None.
+    
+            Returns
+            -------
+            str
+                DESCRIPTION.
+    
+            '''
+            sc['formatted'] = None
+    
+            header_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+            header_document = '<document type="Open Screenplay Format document" version="30">\n'
+            document_info = '\t<info>\n\t</info>\n'            
+            header_format = '\t<styles>\n\t</styles>\n'
+            header_paragraphs = '\t<paragraphs>\n'
             
-        return formatted_output
+            footer_paragraphs = '\t</paragraphs>\n'
+            section_titlepage = '\t<titlepage>\n\t</titlepage>\n'
+            section_lists = '\t<lists>\n\t</lists>\n'
+            footer_document = '</document>\n'
+                
+            sc = self.heading(sc)
+            sc = self.action(sc)
+            sc = self.dialog(sc)
     
-    
-    def heading(self, sc: pd.DataFrame) -> pd.DataFrame:
-        sc.loc[sc['ptype'] == 'h', 'formatted'] = \
-                sc.loc[sc['ptype'] == 'h', 'h_inout'].apply(lambda x: str(x) + '. ') \
-            +   sc.loc[sc['ptype'] == 'h', 'h_title'] \
-            +   sc.loc[sc['ptype'] == 'h', 'h_time'].apply(lambda x: ' - ' + str(x))
+            formatted_output = header_xml \
+                             + header_document \
+                             + document_info \
+                             + header_format \
+                             + header_paragraphs \
+                             + sc['formatted'].sum() \
+                             + footer_paragraphs \
+                             + section_titlepage \
+                             + section_lists \
+                             + footer_document \
+                                 
+            if save:
+                with codecs.open(file_path, "w", 'utf-8-sig') as f:
+                    print(formatted_output, file=f)
+                f.close()
+                
+            return formatted_output
         
-        sc.loc[sc['ptype'] == 'h', 'formatted'] = sc.loc[sc['ptype'] == 'h', 'formatted'].apply(
-            lambda x: '\t\t<para>\n\t\t\t<style basestylename="Scene Heading"/>\n\t\t\t<text>'
-                    + str(x)
-                    + '</text>\n\t\t</para>\n'            
-            )
-        return sc
-    
-    def action(self, sc: pd.DataFrame) -> pd.DataFrame:
-        sc.loc[sc['ptype'] == 'a', 'formatted'] = \
-            sc.loc[sc['ptype'] == 'a', 'pcontent'].apply(lambda x: str(x).lstrip('\s').rstrip('\s').replace('&', '&amp;'))
-        sc.loc[sc['ptype'] == 'a', 'formatted'] = sc.loc[sc['ptype'] == 'a', 'formatted'].apply(
-            lambda x: '\t\t<para>\n\t\t\t<style basestylename="Action"/>\n\t\t\t<text>'
-                    + str(x)
-                    + '</text>\n\t\t</para>\n'
-            )
-        return sc
-
-    def dialog(self, sc: pd.DataFrame) -> pd.DataFrame:
         
-        #
-        sc.loc[sc['ptype'] == 'd', 'formatted'] = \
-              sc.loc[sc['ptype'] == 'd', 'd_character'] \
-            + sc.loc[sc['ptype'] == 'd', 'd_character_parenthesis'].apply(lambda x: '(' + str(x) + ')' if not pd.isnull(x) else '')
-        
-        sc.loc[sc['ptype'] == 'd', 'formatted'] = sc.loc[sc['ptype'] == 'd', 'formatted'].apply(
-            lambda x: '\t\t<para>\n\t\t\t<style basestylename="Character"/>\n\t\t\t<text>'
-                    + str(x)
-                    + '</text>\n\t\t</para>\n'
-            )
-             
-        sc.loc[(sc['ptype'] == 'd') & (sc['d_dialog_parenthesis'].isna()), 'formatted'] = \
-              sc.loc[(sc['ptype'] == 'd') & (sc['d_dialog_parenthesis'].isna()), 'formatted'] \
-            + sc.loc[(sc['ptype'] == 'd') & (sc['d_dialog_parenthesis'].isna()), 'd_dialog'].apply(
-                lambda x: '\t\t<para>\n\t\t\t<style basestylename="Dialogue"/>\n\t\t\t<text>'
-                    + str(x)
-                    + '</text>\n\t\t</para>\n'
+        def heading(self, sc: pd.DataFrame) -> pd.DataFrame:
+            sc.loc[sc['ptype'] == 'h', 'formatted'] = \
+                    sc.loc[sc['ptype'] == 'h', 'h_inout'].apply(lambda x: str(x) + '. ') \
+                +   sc.loc[sc['ptype'] == 'h', 'h_title'] \
+                +   sc.loc[sc['ptype'] == 'h', 'h_time'].apply(lambda x: ' - ' + str(x))
+            
+            sc.loc[sc['ptype'] == 'h', 'formatted'] = sc.loc[sc['ptype'] == 'h', 'formatted'].apply(
+                lambda x: '\t\t<para>\n\t\t\t<style basestylename="Scene Heading"/>\n\t\t\t<text>'
+                        + str(x)
+                        + '</text>\n\t\t</para>\n'            
                 )
+            return sc
         
-        sc.loc[(sc['ptype'] == 'd') & (~sc['d_dialog_parenthesis'].isna()), 'formatted'] = \
-              sc.loc[(sc['ptype'] == 'd') & (~sc['d_dialog_parenthesis'].isna()), 'formatted'] \
-            + sc.loc[(sc['ptype'] == 'd') & (~sc['d_dialog_parenthesis'].isna())].agg(self.format_d_dialog, axis=1)
-                        
-        return sc
+        def action(self, sc: pd.DataFrame) -> pd.DataFrame:
+            sc.loc[sc['ptype'] == 'a', 'formatted'] = \
+                sc.loc[sc['ptype'] == 'a', 'pcontent'].apply(lambda x: str(x).lstrip('\s').rstrip('\s').replace('&', '&amp;'))
+            sc.loc[sc['ptype'] == 'a', 'formatted'] = sc.loc[sc['ptype'] == 'a', 'formatted'].apply(
+                lambda x: '\t\t<para>\n\t\t\t<style basestylename="Action"/>\n\t\t\t<text>'
+                        + str(x)
+                        + '</text>\n\t\t</para>\n'
+                )
+            return sc
     
-    def format_d_dialog(self, x: pd.DataFrame) -> str:
-        '''
-        formats dialog for XML output, to be used as a function for pandas agg or apply.
+        def dialog(self, sc: pd.DataFrame) -> pd.DataFrame:
+            
+            #
+            sc.loc[sc['ptype'] == 'd', 'formatted'] = \
+                  sc.loc[sc['ptype'] == 'd', 'd_character'] \
+                + sc.loc[sc['ptype'] == 'd', 'd_character_parenthesis'].apply(lambda x: '(' + str(x) + ')' if not pd.isnull(x) else '')
+            
+            sc.loc[sc['ptype'] == 'd', 'formatted'] = sc.loc[sc['ptype'] == 'd', 'formatted'].apply(
+                lambda x: '\t\t<para>\n\t\t\t<style basestylename="Character"/>\n\t\t\t<text>'
+                        + str(x)
+                        + '</text>\n\t\t</para>\n'
+                )
+                 
+            sc.loc[(sc['ptype'] == 'd') & (sc['d_dialog_parenthesis'].isna()), 'formatted'] = \
+                  sc.loc[(sc['ptype'] == 'd') & (sc['d_dialog_parenthesis'].isna()), 'formatted'] \
+                + sc.loc[(sc['ptype'] == 'd') & (sc['d_dialog_parenthesis'].isna()), 'd_dialog'].apply(
+                    lambda x: '\t\t<para>\n\t\t\t<style basestylename="Dialogue"/>\n\t\t\t<text>'
+                        + str(x)
+                        + '</text>\n\t\t</para>\n'
+                    )
+            
+            sc.loc[(sc['ptype'] == 'd') & (~sc['d_dialog_parenthesis'].isna()), 'formatted'] = \
+                  sc.loc[(sc['ptype'] == 'd') & (~sc['d_dialog_parenthesis'].isna()), 'formatted'] \
+                + sc.loc[(sc['ptype'] == 'd') & (~sc['d_dialog_parenthesis'].isna())].agg(self.format_d_dialog, axis=1)
+                            
+            return sc
         
-        Parameters
-        ----------
-        x : one row or column of pd.DataFrame depending on axis,
-            to be used with the pandas agg or apply function
-            DESCRIPTION.
+        def format_d_dialog(self, x: pd.DataFrame) -> str:
+            '''
+            formats dialog for XML output, to be used as a function for pandas agg or apply.
+            
+            Parameters
+            ----------
+            x : one row or column of pd.DataFrame depending on axis,
+                to be used with the pandas agg or apply function
+                DESCRIPTION.
+    
+            Returns
+            -------
+            str
+                DESCRIPTION.
+    
+            '''
+            pattern = r'[（(].*?[）)]'
+            d_split = x['d_dialog'].split(pattern)
+            f_dialog = ''
+            for i, d in enumerate(d_split):
+                ddialog = '\t\t<para>\n\t\t\t<style basestylename="Dialogue"/>\n\t\t\t<text>' \
+                    + str(d) \
+                    + '</text>\n\t\t</para>\n'
+                if i == 0:
+                    f_dialog = f_dialog + ddialog
+                else:
+                    dparenthetical = '\t\t<para>\n\t\t\t<style basestylename="Parenthetical"/>\n\t\t\t<text>' \
+                        + str(x['d_dialog_parenthesis'][i-1]) \
+                        + '</text>\n\t\t</para>\n' 
+                    f_dialog = f_dialog + dparenthetical + ddialog
+            return f_dialog
 
-        Returns
-        -------
-        str
-            DESCRIPTION.
-
-        '''
-        pattern = r'[（(].*?[）)]'
-        d_split = x['d_dialog'].split(pattern)
-        f_dialog = ''
-        for i, d in enumerate(d_split):
-            ddialog = '\t\t<para>\n\t\t\t<style basestylename="Dialogue"/>\n\t\t\t<text>' \
-                + str(d) \
-                + '</text>\n\t\t</para>\n'
-            if i == 0:
-                f_dialog = f_dialog + ddialog
-            else:
-                dparenthetical = '\t\t<para>\n\t\t\t<style basestylename="Parenthetical"/>\n\t\t\t<text>' \
-                    + str(x['d_dialog_parenthesis'][i-1]) \
-                    + '</text>\n\t\t</para>\n' 
-                f_dialog = f_dialog + dparenthetical + ddialog
-        return f_dialog
-
-
-#%% Read and Parse Screenplay
-fp = 'SCREENPLAYS_PRIVATE/电影剧本_往来有玉面.docx'
-sc = Screenplay()
-docx = sc.read_docx(fp)
-
-# Parse Scene Heading
-docx = sc.elements.identify_scene_heading(docx, pattern='\#[0-9].*')
-docx = sc.elements.identify_dialog(docx)
-docx = sc.elements.identify_action(docx)
-
-docx = sc.elements.identify_scene_number(docx, pattern=r'\#(?P<h_number>\d*)')
-docx = sc.elements.identify_scene_inout(docx, pattern=r'[0-9*]\d*(\s*\w*.*)景')
-docx = sc.elements.identify_scene_title(docx, pattern=r'景[，,](\s*\w*.*)[，,]')
-docx = sc.elements.identify_scene_time(docx, pattern=r'[，,].*[，,](\s*\w*.*$)')
-                                       
-# Parse Dialog
-docx = sc.elements.identify_dialog_character(docx, pattern=r'(.*)[:：]')
-docx = sc.elements.identify_dialog_dialog(docx, pattern=r'[:：](.*)')
-                                       
-
-# Reformat to openxml
-#output = sc.reformat.to_openxml(docx, save=True, file_path ='OUTPUT/wanglai.xml')
-#print(output)
-
-#%% 
-docx['formatted'].sum().replace('&', '&amp;')
