@@ -21,4 +21,6 @@ Sources:
 
 Tools 工具：
 - Screenplay
+  -- Reformats Screenplay
+  -- Translates Screenplay
 - Article
