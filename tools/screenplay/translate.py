@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jul 18 18:11:25 2020
+Created on Sun Jul 26 17:48:11 2020
 
-@author: VXhpUS
+@author: VSurfacePro3
 """
 
-#%% Import Library
+#%% Function Baidu Translation
 import hashlib
 from random import randint
 import http.client
 import urllib
 import json
 
-#%% Function Baidu Translation
+#%%
 class Translate(object):
-    def __init__(self, provider='Baidu'):
-        pass
     
-    def translate_Baidu(self, str_to_trans='apple', lang_from='zh', lang_to='en'):
+    def __init__(self, sc: str = None):   
+        super(Screenplay, self).__init__()
+        
+    def Baidu(str_to_trans='apple', lang_from='zh', lang_to='en'):
         time.sleep(2)
         #path_translink = 'http://api.fanyi.baidu.com/api/trans/vip/translate'
         path_translink = 'https://fanyi-api.baidu.com/api/trans/vip/translate'
@@ -54,3 +55,4 @@ class Translate(object):
         finally:
             if httpClient:
                httpClient.close() 
+
