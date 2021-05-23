@@ -8,6 +8,7 @@ Created on Sun Mar 17 00:04:07 2019
 #%%
 # Load Standard Library
 import os
+from sys import platform
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from selenium import webdriver
@@ -61,8 +62,16 @@ class Registration(object):
         # Load Chrome Driver for AJAX Response Scrapping
         chromeoptions = webdriver.chrome.options.Options()
         chromeoptions.headless = True
-        self.driver = webdriver.Chrome(executable_path="../requirements/chromedriver.exe"
+        if re.match('win', platform):
+            self.driver = webdriver.Chrome(executable_path="../requirements/chromedriver.exe"
 ,  options = chromeoptions)
+        elif re.match('linux', platform):
+            self.driver = webdriver.Chrome(executable_path="../requirements/chromedriver"
+,  options = chromeoptions)
+        else:
+            self.driver = webdriver.Chrome(executable_path="../requirements/chromedriver"
+,  options = chromeoptions)
+            
         
 ##########        
     def save_records(self,
