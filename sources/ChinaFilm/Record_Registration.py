@@ -30,7 +30,7 @@ from sklearn.pipeline import make_pipeline
 ######################################################################
 class Registration(object):
  
-    def __init__(self):
+    def __init__(self, driver=None):
         """
         """
         super(Registration, self).__init__()
@@ -59,12 +59,15 @@ class Registration(object):
         # Call Estimate Class
         self.estimate = Estimate_Registration()
         
-        # Load Chrome Driver for AJAX Response Scrapping
-        chromeoptions = webdriver.chrome.options.Options()
-        chromeoptions.add_argument('--headless')
-        chromeoptions.add_argument('--no-sandbox')
-        chromeoptions.add_argument('--disable-dev-shm-usage')
-        self.driver = webdriver.Chrome(options=chromeoptions)
+        if not driver:
+            # Load Chrome Driver for AJAX Response Scrapping
+            chromeoptions = webdriver.chrome.options.Options()
+            chromeoptions.add_argument('--headless')
+            chromeoptions.add_argument('--no-sandbox')
+            chromeoptions.add_argument('--disable-dev-shm-usage')
+            self.driver = webdriver.Chrome(options=chromeoptions)
+        else:
+            self.driver = driver
         
         #if re.match('win', platform):
         #    self.driver = webdriver.Chrome(executable_path="requirements/chromedriver.exe",  options=chromeoptions)
