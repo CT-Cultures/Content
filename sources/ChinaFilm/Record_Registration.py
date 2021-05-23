@@ -326,6 +326,7 @@ class Registration(object):
 
         """
         contents_of_registrations = []
+        unprocessed_links = []
         for _, link in links_of_registrations.iterrows():
             self.driver.get(link['备案详细页链接'])
             self.driver.implicitly_wait(random.randint(1,5)) # or use 5 seconds
@@ -340,7 +341,7 @@ class Registration(object):
                 table['公示批次链接'] = link['公示批次链接']
                 contents_of_registrations.append(table)
             else:
-                unprocessed_links = [link]
+                unprocessed_links.append[link]
 
         contents_of_registrations = pd.concat([contents_of_registrations[i] for i in range(len(contents_of_registrations))], ignore_index=True)
         contents_of_registrations['梗概'] = contents_of_registrations['梗概'].apply(lambda x: x.lstrip('梗概：'))
