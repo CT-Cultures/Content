@@ -61,8 +61,8 @@ class Registration(object):
         # Load Chrome Driver for AJAX Response Scrapping
         chromeoptions = webdriver.chrome.options.Options()
         chromeoptions.headless = True
-        self.driver = webdriver.Chrome(options = chromeoptions)
-
+        self.driver = webdriver.Chrome(executable_path="../requirements/chromedriver.exe"
+,  options = chromeoptions)
         
 ##########        
     def save_records(self,
