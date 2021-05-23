@@ -46,6 +46,9 @@ class Registration(object):
         # folder for saving records, relative
         self.path_records = 'records'
         
+        # folder for aving logs, relative
+        self.path_logs = 'logs'
+        
         # links of pages from web
         self.links_of_pages = self.links_of_pages()
         
@@ -319,16 +322,25 @@ class Registration(object):
             self.driver.implicitly_wait(random.randint(1,5)) # or use 5 seconds
             html = self.driver.page_source
             bsObj_reg = BeautifulSoup(html, 'html.parser')
-            table = pd.read_html(str(bsObj_reg.find('form', id='form1')), index_col=0)[0].T
-            table['公示日期'] = link['公示日期']
-            table['公示批次名称'] = link['公示批次名称']
-            table['备案详细页链接'] = link['备案详细页链接']
-            table['公示批次链接'] = link['公示批次链接']
-            contents_of_registrations.append(table)
+            tables = pd.read_html(str(bsObj_reg.find('form', id='form1')), index_col=0)
+            if tables:
+                table = tables[0].T
+                table['公示日期'] = link['公示日期']
+                table['公示批次名称'] = link['公示批次名称']
+                table['备案详细页链接'] = link['备案详细页链接']
+                table['公示批次链接'] = link['公示批次链接']
+                contents_of_registrations.append(table)
+            else:
+                unprocessed_links = [link]
 
         contents_of_registrations = pd.concat([contents_of_registrations[i] for i in range(len(contents_of_registrations))], ignore_index=True)
         contents_of_registrations['梗概'] = contents_of_registrations['梗概'].apply(lambda x: x.lstrip('梗概：'))
-
+        
+        if unprocessed_links:
+            unprocessed_links = pd.concat([unprocessed_links[i] for i in range(len(unprocessed_links))], ignore_index=True)
+            unprocessed_links.to_cvs(self.path_logs + 'unprocessed_records.csv', encoding='utf-8-sig', index=False)
+            print('Some records remained unprocess, check logs/unprocessed_records.csv for more information.')
+            
         if savefile:
             self.save_records(contents_of_registrations, filename, backup=True)
             print(filename + '.csv updated.')
