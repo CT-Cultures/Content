@@ -63,13 +63,13 @@ class Registration(object):
         chromeoptions = webdriver.chrome.options.Options()
         chromeoptions.headless = True
         if re.match('win', platform):
-            self.driver = webdriver.Chrome(executable_path="/requirements/chromedriver.exe"
+            self.driver = webdriver.Chrome(executable_path="requirements/chromedriver.exe"
 ,  options = chromeoptions)
         elif re.match('linux', platform):
-            self.driver = webdriver.Chrome(executable_path="/requirements/chromedriver"
+            self.driver = webdriver.Chrome(executable_path="requirements/chromedriver"
 ,  options = chromeoptions)
         else:
-            self.driver = webdriver.Chrome(executable_path="/requirements/chromedriver"
+            self.driver = webdriver.Chrome(executable_path="requirements/chromedriver"
 ,  options = chromeoptions)
             
         
