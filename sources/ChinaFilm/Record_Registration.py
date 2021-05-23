@@ -62,6 +62,8 @@ class Registration(object):
         # Load Chrome Driver for AJAX Response Scrapping
         chromeoptions = webdriver.chrome.options.Options()
         chromeoptions.headless = True
+        chromeoptions.add_argument('--no-sandbox')
+        chromeoptions.add_argument('--disable-dev-shm-usage')
         self.driver = webdriver.Chrome(options=chromeoptions)
         
         #if re.match('win', platform):
