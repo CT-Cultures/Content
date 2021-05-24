@@ -8,9 +8,9 @@ Created on Sun Mar 17 00:04:07 2019
 #%%
 # Load Standard Library
 import os
-from sys import platform
+#from sys import platform
 from urllib.request import Request, urlopen
-from urllib.error import HTTPError
+#from urllib.error import HTTPError
 from selenium import webdriver
 from bs4 import BeautifulSoup
 
@@ -333,7 +333,8 @@ class Registration(object):
         unprocessed_links = []
         for _, link in links_of_registrations.iterrows():
             self.driver.get(link['备案详细页链接'])
-            self.driver.implicitly_wait(random.randint(1,5)) # or use 5 seconds
+            print(link['片名'], '...')
+            self.driver.implicitly_wait(2) # or use 5 seconds random.randint(2,5)
             html = self.driver.page_source
             bsObj_reg = BeautifulSoup(html, 'html.parser')
             tables = pd.read_html(str(bsObj_reg.find('form', id='form1')), index_col=0)
@@ -464,8 +465,8 @@ class Registration(object):
         lp_latest_not_in_cr_old = links_of_publications_latest[~links_of_publications_latest['公示批次链接'].isin(contents_of_registrations['公示批次链接'])]
         cr_old_not_in_lp_latest = contents_of_registrations[~contents_of_registrations['公示批次链接'].isin(links_of_publications_latest['公示批次链接'])]
         
-        lr_old_not_in_cr_old = links_of_registrations[~links_of_registrations['制作表链接'].isin(contents_of_registrations['制作表链接'])]
-        cr_old_not_in_lr_old = contents_of_registrations[~contents_of_registrations['制作表链接'].isin(links_of_registrations['制作表链接'])]
+        lr_old_not_in_cr_old = links_of_registrations[~links_of_registrations['备案详细页链接'].isin(contents_of_registrations['备案详细页链接'])]
+        cr_old_not_in_lr_old = contents_of_registrations[~contents_of_registrations['备案详细页链接'].isin(links_of_registrations['备案详细页链接'])]
         
         links_of_publications_to_update = pd.concat([   lp_latestest_not_in_lp_old['公示批次链接'],
                                                         lp_old_not_in_lp_latest['公示批次链接'],
@@ -490,21 +491,21 @@ class Registration(object):
             links_of_registrations_updated = pd.concat([links_of_registrations,
                                                         links_of_registrations_to_update],
                                                        axis=0, ignore_index=True)
-            links_of_registrations_updated.drop_duplicates(subset='制作表链接', inplace=True)
-            links_of_registrations.sort_values(by=['公示日期','制作表链接'], ascending=False, inplace=True)
+            links_of_registrations_updated.drop_duplicates(subset='备案详细页链接', inplace=True)
+            links_of_registrations.sort_values(by=['公示日期','备案详细页链接'], ascending=False, inplace=True)
             links_of_registrations.reset_index(drop=True, inplace=True)
             
             contents_of_registrations_updated = pd.concat([contents_of_registrations,
                                                            contents_of_registrations_to_update],
                                                           axis=0, ignore_index=True)        
-            contents_of_registrations_updated.drop_duplicates(subset=['制作表链接','公示批次链接'], inplace=True)
-            contents_of_registrations_updated.sort_values(by=['公示日期','制作表链接'], ascending=False, inplace=True)
+            contents_of_registrations_updated.drop_duplicates(subset=['备案详细页链接','公示批次链接'], inplace=True)
+            contents_of_registrations_updated.sort_values(by=['公示日期','备案详细页链接'], ascending=False, inplace=True)
             contents_of_registrations_updated.reset_index(drop=True, inplace=True)
         else:
             links_of_publications_latest = links_of_publications
             links_of_registrations_updated = links_of_registrations
             contents_of_registrations_updated = contents_of_registrations
-            contents_of_registrations_updated.sort_values(by=['公示日期','制作表链接'], ascending=False, inplace=True)
+            contents_of_registrations_updated.sort_values(by=['公示日期','备案详细页链接'], ascending=False, inplace=True)
             contents_of_registrations_updated.reset_index(drop=True, inplace=True)
         
         if save_update:        
@@ -666,7 +667,7 @@ class Parser_Registration(object):
         38
         }
             
-        publink, sequence_no = df_row['制作表链接'], df_row['备案立项年度顺序号']
+        publink, sequence_no = df_row['备案详细页链接'], df_row['备案立项年度顺序号']
         if publink in pre_2011_sequence_errors:
             sequence_no = pre_2011_sequence_errors[publink]
             
