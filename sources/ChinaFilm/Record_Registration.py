@@ -86,8 +86,8 @@ class Registration(object):
         """
         dt = datetime.datetime.now()
         appendix_dt = '_' + str(dt.strftime("%Y%m%d")) + '_'+ str(dt.strftime("%H%M"))      
-        path_file = self.path_records + '//' + filename + '.csv'
-        path_file_bk = self.path_records + '//backup//' + filename + appendix_dt + '.csv'
+        path_file = self.path_records + '/' + filename + '.csv'
+        path_file_bk = self.path_records + '/backup/' + filename + appendix_dt + '.csv'
         if backup:
             if os.path.isfile(path_file):
                 os.rename(path_file, path_file_bk)
@@ -143,7 +143,7 @@ class Registration(object):
 ########## 
     def links_of_publications(self, 
                               links_of_pages: pd.DataFrame = 'default',
-                              filename: str = "links_of_publications_registration", 
+                              filename: str = "links_of_publications", 
                               savefile: bool = False) -> pd.DataFrame:
         """
         This functions grabs the links of registration publications
@@ -264,7 +264,12 @@ class Registration(object):
         
             links_of_registrations.append(links_of_registrations_per_publication)
         
-        links_of_registrations = pd.concat([links_of_registrations[i] for i in range(len(links_of_registrations))], ignore_index=True)
+        if len(links_of_registrations) != 0:
+            links_of_registrations = pd.concat([links_of_registrations[i] for i in range(len(links_of_registrations))], ignore_index=True)
+        else:
+            links_of_registrations = pd.DataFrame(columns = ['序号', '备案立项号', '片名', '备案单位', '编剧', '备案结果', '备案地', '公示日期', '公示批次链接',
+       '公示批次名称'])
+   
         
         if savefile:
             self.save_records(links_of_registrations, filename, backup=True)
@@ -362,8 +367,12 @@ class Registration(object):
             else:
                 unprocessed_links.append[link]
 
-        contents_of_registrations = pd.concat([contents_of_registrations[i] for i in range(len(contents_of_registrations))], ignore_index=True)
-        contents_of_registrations['梗概'] = contents_of_registrations['梗概'].apply(lambda x: x.lstrip('梗概：'))
+        if len(contents_of_registrations) != 0:
+            contents_of_registrations = pd.concat([contents_of_registrations[i] for i in range(len(contents_of_registrations))], ignore_index=True)
+            contents_of_registrations['梗概'] = contents_of_registrations['梗概'].apply(lambda x: x.lstrip('梗概：'))
+        else:
+            contents_of_registrations = pd.DataFrame(columns = ['备案立项号', '片名', '备案单位', '编剧', '备案结果', '备案地', '梗概', '公示日期', '公示批次名称',
+       '备案详细页链接', '公示批次链接'])
         
         if unprocessed_links:
             unprocessed_links = pd.concat([unprocessed_links[i] for i in range(len(unprocessed_links))], ignore_index=True)
@@ -497,7 +506,8 @@ class Registration(object):
 
         if links_of_publications_to_update.shape[0] != 0:
             # Update corresponding records.      
-            links_of_registrations_to_update = self.links_of_registrations(links_of_publications_to_update)              
+            links_of_registrations_to_update = self.links_of_registrations(links_of_publications_to_update) 
+            print(links_of_registrations_to_update.shape[0], ' new registrations are found for update.')             
             contents_of_registrations_to_update = self.contents_of_registrations(links_of_registrations_to_update)
     
             
