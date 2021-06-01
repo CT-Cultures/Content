@@ -13,10 +13,11 @@ links_of_registrations = dy_reg.links_of_registrations(links_of_publications, sa
 contents = dy_reg.contents_of_registrations(links_of_registrations[0:3])
 #%%
 links_of_registrations = pd.read_csv('records/links_of_registrations.csv', encoding='utf-8-sig')
-batch_size = 25
-i = 300
-fp = 'D://Github//Content//sources//ChinaFilm//records//contents_of_registrations_test.csv'
-while i < len(links_of_registrations):
+batch_size = 5
+i = 7000
+stop_i = 10000
+fp = 'C://Users//Junting Liu//Documents//GitHub//Content//sources//ChinaFilm//records//contents_of_registrations_test7000.csv'
+while (i < stop_i) or (i < len(links_of_registrations)):
     records = dy_reg.contents_of_registrations(links_of_registrations[i:i+batch_size])
     records.to_csv(fp, mode='a', header=(not os.path.exists(fp)), encoding='utf-8-sig', index=False)
     i += batch_size

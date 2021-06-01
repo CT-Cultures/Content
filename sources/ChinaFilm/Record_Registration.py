@@ -21,7 +21,6 @@ from pandas.tseries.offsets import MonthEnd
 import datetime
 from datetime import date
 from datetime import timedelta
-import random
 
 import matplotlib.pyplot as plt
 from sklearn.linear_model import Ridge
@@ -95,7 +94,22 @@ class Registration(object):
         records.to_csv(path_file, encoding='utf-8-sig', index=False)
         print('file saved to: ' + filename + '.csv')
 
-        
+##########
+    def remove_bom_utf8(self, x: str)-> str:
+        """
+        Parameters
+        ----------
+        self.x : str
+            Input a string and remove utf-8 BOM if it exist
+
+        Returns
+        -------
+        str
+            The resulting utf-8 string without BOM.
+
+        """
+        return x.encode('utf-8').lstrip(b'\xef\xbb\xbf').decode('utf-8')
+      
 ##########
     def links_of_pages(self, 
                        filename: str = "links_of_pages_registration",
