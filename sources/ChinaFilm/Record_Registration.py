@@ -537,7 +537,7 @@ class Registration(object):
             self.save_records(links_of_publications_latest, fn_links_of_publications)
             self.save_records(links_of_registrations_updated, fn_links_of_registrations)       
             self.save_records(contents_of_registrations_updated, fn_contents_of_registrations)
-            print('Records from ' + str(len(links_of_publications_to_update)) + 'publication(s) are added to contents of registrations.')
+            print('Records from ' + str(len(links_of_publications_to_update)) + ' publication(s) are added to contents of registrations.')
             
         return contents_of_registrations_updated
 

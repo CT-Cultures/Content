@@ -6,27 +6,31 @@ Created on Sat Jun 13 15:03:16 2020
 """
 #%%
 # Load Standard Library
+# Load Standard Library
+import os
+#from sys import platform
+from urllib.request import Request, urlopen
+#from urllib.error import HTTPError
+from selenium import webdriver
 from bs4 import BeautifulSoup
-from urllib.request import urlopen
-from pathlib import Path
-from urllib.error import HTTPError
+
 import re
 import numpy as np
 import pandas as pd
-
+from pandas.tseries.offsets import MonthEnd
 import datetime
-from pathlib import Path
-import os
+from datetime import date
+from datetime import timedelta
 
 # Load from Local
 #from IO_Storage import File
 
 ######################################################################
-class GetRelease(object):
+class Release(object):
     
     def __init__(self):
         
-        super(GetRelease, self).__init__()
+        super(Release, self).__init__()
         
         # 中国电影电子政务平台网址
         self.url_base = "http://www.chinafilm.gov.cn"
@@ -34,8 +38,14 @@ class GetRelease(object):
         # 电影电子政务平台备案公示网址
         self.url_release = "http://www.chinafilm.gov.cn/chinafilm/channels/168.shtml"
         
+        # url_browser head
+        self.headers={"User-Agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3"}
+        
         # folder for saving records, relative
         self.path_records = 'records'
+        
+        # folder for aving logs, relative
+        self.path_logs = 'logs'
         
         # links of pages from web
         self.links_of_pages = self.links_of_pages()
@@ -50,8 +60,8 @@ class GetRelease(object):
         """
         dt = datetime.datetime.now()
         appendix_dt = '_' + str(dt.strftime("%Y%m%d")) + '_'+ str(dt.strftime("%H%M"))      
-        path_file = self.path_records + '//' + filename + '.csv'
-        path_file_bk = self.path_records + '//backup//' + filename + appendix_dt + '.csv'
+        path_file = self.path_records + '/' + filename + '.csv'
+        path_file_bk = self.path_records + '/backup/' + filename + appendix_dt + '.csv'
         if backup:
             if os.path.isfile(path_file):
                 os.rename(path_file, path_file_bk)
@@ -61,7 +71,7 @@ class GetRelease(object):
     ##########  
     
     def links_of_pages(self,
-                       filename: str = "links_of_pages_release",
+                       filename: str = "links_of_pages_releases",
                        savefile: bool = False) -> pd.DataFrame:
         """
         
@@ -69,7 +79,7 @@ class GetRelease(object):
         Parameters
         ----------
         filename : str, optional
-            DESCRIPTION. The default is "links_of_pages_release".
+            DESCRIPTION. The default is "links_of_pages_releases".
         savefile : bool, optional
             DESCRIPTION. The default is False.
 
@@ -79,24 +89,26 @@ class GetRelease(object):
             DESCRIPTION.
 
         """
-    
 
-        try:
-            with urlopen(self.url_release) as x: html = x.read().decode('utf-8')
-        except HTTPError as e:
-            print(e)
+        req = Request(url=self.url_release, headers=self.headers) 
+        with urlopen(req) as x: 
+            html = x.read().decode('utf-8')
+            
         bsObj = BeautifulSoup(html, 'html5lib')
-        links_of_pages = [self.url_release]
-        for item in  bsObj.find_all(attrs={"class": "page_a"}):
-           links_of_pages.append(self.url_base + item.get("href"))
-           
-        links_of_pages = pd.DataFrame(links_of_pages)
-        links_of_pages.columns = ['links_of_pages']
-        links_of_pages.drop_duplicates(keep='first', inplace=True)
-        links_of_pages = links_of_pages[links_of_pages['links_of_pages'] != 'http://www.chinafilm.gov.cnjavascript:;']
-        links_of_pages.reset_index(inplace=True, drop=True)
         
+        str_total_number_of_pages = bsObj.find(text=re.compile(u'共[0-9]*页'))
+        total_number_of_pages = int(str_total_number_of_pages[1:-1])
+        links_of_pages = [self.url_release]       
         
+        for n in range(2, total_number_of_pages+1):
+            links_of_pages.append(self.url_release[:-6] + '_' + str(n) + '.shtml')
+        
+        if len(links_of_pages) != 0:
+            links_of_pages = pd.DataFrame(links_of_pages)
+            links_of_pages.columns = ['links_of_pages']
+        else:
+            links_of_pages = pd.DataFrame(columns =['links_of_pages'])
+
         if savefile:
             self.save_records(links_of_pages, filename, backup=True)
             
@@ -104,7 +116,7 @@ class GetRelease(object):
     
     def links_of_publications(self, 
                               links_of_pages: pd.DataFrame = 'default',
-                              filename: str = "links_of_publications_release", 
+                              filename: str = "links_of_publications_releases", 
                               savefile: bool = False) -> pd.DataFrame:
         # 从 电影局官网 抓取 公映许可证发放 批次页 的 链接
         if links_of_pages == 'default':
@@ -114,21 +126,19 @@ class GetRelease(object):
         links_of_publications = []
         
         for _, page in links_of_pages.iterrows():
-            with urlopen(page['links_of_pages']) as x: 
-                html = x.read()   # site has problem decoding
+            req = Request(url=page['links_of_pages'], headers=self.headers) 
+            with urlopen(req) as x: 
+                html = x.read().decode('utf-8')   # site has problem decoding
             bsObj = BeautifulSoup(html, 'html5lib')
-            for item in bsObj.find(attrs={"class": "m2ru1 m2ru11"}).find_all('li'):
-                title = item.a.span.next.next  # title
-                link = self.url_base + item.a.get('href') # link
-                dt_publish = item.a.span.next.next.next.next # pubdate
-                links_of_publications.append([title, link, dt_publish])
+            for item in bsObj.find_all('a', class_="m2r_a"):
+                links_of_publications += [[self.url_base + item.get("href"), str(item.text)[1:]]]
                 
                 
         if len(links_of_publications) != 0:
             links_of_publications = pd.DataFrame(links_of_publications)
-            links_of_publications.columns = ['公示名称', '公映许可证发放公示批次链接', '公示日期']
+            links_of_publications.columns = ['公示批次链接', '公示名称']
         else:
-            links_of_publications = pd.DataFrame(columns = ['公示名称', '公映许可证发放公示批次链接', '公示日期'])
+            links_of_publications = pd.DataFrame(columns = ['公示批次链接', '公示名称'])
             
                   
         if savefile:
@@ -136,90 +146,74 @@ class GetRelease(object):
             
         return links_of_publications
         
-    def contents_of_publications(self, 
+    def contents_of_releases(self, 
                                  links_of_publications: pd.DataFrame,
-                                 filename: str = "contents_of_publications_release", 
+                                 filename: str = "contents_of_releases", 
                                  savefile: bool = False) -> pd.DataFrame:
 
         #从 电影局官网 抓取 公映许可证发放批次页，从中清理出内容信息
-        if len(links_of_publications) == 0:
-            contents_of_publications = pd.DataFrame([])
-            contents_of_publications.columns = ['公映许可证发放公示批次链接', '公示日期']
-        
-        for _, item in links_of_publications.iterrows():
-            with urlopen(item['公映许可证发放公示批次链接']) as x：
+        contents_of_releases = []
+        for _, publication in links_of_publications.iterrows():
+            req = Request(url=publication['公示批次链接'], headers=self.headers) 
+            with urlopen(req) as x:
                 html = x.read()
-                bsObj= BeautifulSoup(html, 'html5lib')
+                bsObj = BeautifulSoup(html, 'html5lib')
+                
+                dt_publish = bsObj.find('span', class_='fl').text
+                dt_publish = re.match('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-3][0-9]', dt_publish)[0]
+                
+                table = pd.read_html(html, header=0)[0]
+                table['公示批次链接'] = publication['公示批次链接']
+                table['公示名称'] = publication['公示名称']
+                table['公示日期'] = dt_publish
+                
+                contents_of_releases.append(table)
+                
+        if len(contents_of_releases) != 0:
+            contents_of_releases = pd.concat([contents_of_releases[i] for i in range(len(contents_of_releases))], ignore_index=True)
+        else:
+            contents_of_releases.columns = ['序号', '电影类别', '编码', '公映证号', '片名', '第一出品单位']
+            
+        if savefile:
+            self.save_records(contents_of_releases, filename, backup=True)
+            print(filename + '.csv updated.')
       
-        return contents_of_publications
+        return contents_of_releases
     
-class UpdateRelease(object):
-    
-    def __init__(self):
-        super(UpdateRelease, self).__init__()
-        # 中国电影政务平台网址
-        self.url_base = "http://dy.chinasarft.gov.cn"
-        # 电影备案立项网址
-        self.url_release = "http://dy.chinasarft.gov.cn/html/www/catalog/012996c2a84002724028815629965e99.html"
-        self.path_records = 'records'
+    def update_records(self, 
+                       fn_links_of_publications: str = "links_of_publications_releases",
+                       fn_contents_of_releases: str = "contents_of_releases",
+                       save_update: bool = False
+                       ) -> pd.DataFrame:
+        """
+        
 
-    def links_of_newpublications(self, savefile=False):
-        GRS = GetRelease()
-        # 打开现有存档
-        filename = "PubThreatricalRelease_links_allpublishes"
-        heading_links_publications = ['公映许可证发放公示批次链接', '公示日期']
-        reader = File()
-        filepath = Path(self.path_results + "\\" + filename + ".csv")
-        records_existing = reader.open_to_list_of_list(filepath)
-        if heading_links_publications == records_existing[0]:
-            records_existing = records_existing[1:len(records_existing)] #saved records shall have heading, remove heading
-        # 网上获取最新
-        records_latest = GRS.links_of_publications()
-        len_diff= len(records_latest) - len(records_existing)
-        list_links_newpublications = []
-        if len_diff != 0:
-            index = 0
-            while index < len_diff:
-                list_links_newpublications += [records_latest[index]]
-                index = index + 1
-            if savefile:
-                filename = "PubThreatricalRelease_links_allpublishes"
-                reader = File()
-                filepath = Path(self.path_records + "\\" + filename + ".csv")
-                records_existing = reader.open_to_list_of_list(filepath)
-                if heading_links_publications == records_existing[0]:
-                    records_existing = records_existing[1:]
-                already_in_record = list(filter(lambda x:x == list_links_newpublications[0], records_existing))
-                if not already_in_record:
-                    records_joined = [heading_links_publications] + list_links_newpublications + records_existing
-                    writer = File()
-                    writer.write_to_cvs_wbk(records_joined, self.path_records, filename)               
-        return list_links_newpublications
-    
-     ##########           
-    def contents_of_newpublications(self, savefile=False):
-        GRS = GetRelease()                
-        list_links_newpublications = self.links_of_newpublications()
-        list_contents_newpublications  = []
-        if len(list_links_newpublications) != 0:
-            list_contents_newpublications = GRS.contents_of_publications(list_links_newpublications)
-            headings_info_releases = ['编码','公映证号','片名','第一出品单位','批次名称',
-                                      '公示批次中的序号','批次链接','发布日期']
-            if savefile:
-                self.links_of_newpublications(savefile=savefile)
-                print("Links of Release Publications updated, added ", + len(list_links_newpublications), " record(s).")   
-                filename = "PubThreatricalRelease_info_allreleases"
-                reader = File()
-                filepath = Path(self.path_records + "\\" + filename + ".csv")
-                records_existing = reader.open_to_list_of_list(filepath)
-                if headings_info_releases == records_existing[0]:
-                    records_existing = records_existing[1:]
-                if len(list_contents_newpublications) != 0:
-                    already_in_record = list(filter(lambda x:x == list_contents_newpublications[0], records_existing))
-                    if not already_in_record:
-                        records_joined = [headings_info_releases] + list_contents_newpublications + records_existing
-                        writer = File()
-                        writer.write_to_cvs_wbk(records_joined, self.path_records, filename)
-                        print("Contents of Release Publications updated, added ", + len(list_contents_newpublications), " record(s).")   
-        return list_contents_newpublications
-    
+        Parameters
+        ----------
+        fn_links_of_publications : str, optional
+            DESCRIPTION. The default is "links_of_publications_releases".
+        fn_contents_of_releases : str, optional
+            DESCRIPTION. The default is "contents_of_registrations".
+        save_update : bool, optional
+            DESCRIPTION. The default is False.
+
+        Returns
+        -------
+        None.
+
+        """
+        # Import Existing Records:
+        if os.path.isfile(self.path_records + '//' + fn_links_of_publications + '.csv'):
+            links_of_publications = pd.read_csv(self.path_records + '//' + fn_links_of_publications + '.csv', encoding='utf-8-sig')
+        else:
+            links_of_publications = self.links_of_publications('empty')
+        
+            
+        if os.path.isfile(self.path_records + '//' + fn_contents_of_releases + '.csv'):
+            contents_of_releases = pd.read_csv(self.path_records + '//' + fn_contents_of_releases + '.csv', encoding='utf-8-sig')
+        else:
+            contents_of_releases = self.contents_of_releases(links_of_publications = pd.DataFrame())
+        
+        links_of_publications_latest = self.links_of_publications()
+        
+        # Find Records to update
