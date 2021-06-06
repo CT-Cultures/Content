@@ -834,7 +834,7 @@ class Parser_Registration(object):
 
         if reg_submit_year:
             reg_submit_year = reg_submit_year.group()
-            reg_submit_year = reg_submit_year.lstrip('[\[【（(]').rstrip('[)）】\]]')
+            reg_submit_year = reg_submit_year.lstrip('[\[【（(〔]').rstrip('[〕)）】\]]')
             reg_submit_year = int(reg_submit_year)
         else:
             reg_submit_year = np.nan
