@@ -92,7 +92,24 @@ class Registration(object):
             if os.path.isfile(path_file):
                 os.rename(path_file, path_file_bk)
         records.to_csv(path_file, encoding='utf-8-sig', index=False)
-        print('file saved to: ' + filename + '.csv')
+        print('file saved to: ' + filename + '.csv with a total of ', records.shape[0], ' records.')
+##########
+    def append_records(self,
+                     records: pd.DataFrame, 
+                     filename: str, 
+                     backup=True) -> None:
+        """
+        This functions saves pd.DataFrame to csv files with backup option
+        """
+        dt = datetime.datetime.now()
+        appendix_dt = '_' + str(dt.strftime("%Y%m%d")) + '_'+ str(dt.strftime("%H%M"))      
+        path_file = self.path_records + '/' + filename + '.csv'
+        path_file_bk = self.path_records + '/backup/' + filename + appendix_dt + '.csv'
+        if backup:
+            if os.path.isfile(path_file):
+                os.rename(path_file, path_file_bk)
+        records.to_csv(path_file, mode='a', header=(not os.path.exists(path_file)), encoding='utf-8-sig', index=False)
+        print(records.shape[0], ' records appended to: ' + filename + '.csv')
 
 ##########
     def remove_bom_utf8(self, x: str)-> str:
@@ -433,10 +450,31 @@ class Registration(object):
         return records_new
     
 ##########
+    def content_of_registrations_in_batch(self, 
+                                          links_of_registrations: pd.DataFrame, 
+                                          filename: str = "contents_of_registrations_in_batch",
+                                          i: int = 0,
+                                          batch_size: int = 5,
+                                          ) -> pd.DataFrame:
+        """
+        """
+        while i < links_of_registrations.shape[0]:
+            records = self.contents_of_registratons(links_of_registrations[i:i+batch_size])
+            i += batch_size
+            print(i, '--------------------')
+            
+            self.append_records(records, filenmae)
+        
+        records_accumulated = pd.read_csv(self.path_records + '//' + filename + '.csv')
+        records_accumulated.drop_duplicates(inplace=True)
+        return records_accumulated
+        
+##########
     def update_records(self, 
                        fn_links_of_publications: str = "links_of_publications",
                        fn_links_of_registrations: str = "links_of_registrations" ,
                        fn_contents_of_registrations: str = "contents_of_registrations",
+                       batch_size: int = 0,
                        save_update: bool = False
                        ) -> pd.DataFrame:
         """
@@ -507,8 +545,13 @@ class Registration(object):
         if links_of_publications_to_update.shape[0] != 0:
             # Update corresponding records.      
             links_of_registrations_to_update = self.links_of_registrations(links_of_publications_to_update) 
-            print(links_of_registrations_to_update.shape[0], ' new registrations are found for update.')             
-            contents_of_registrations_to_update = self.contents_of_registrations(links_of_registrations_to_update)
+            print(links_of_registrations_to_update.shape[0], ' new registrations are found for update.')
+            if batch_size == 0:
+                contents_of_registrations_to_update = self.contents_of_registrations(links_of_registrations_to_update)
+            else:
+                ############# write batch update here
+                contents_of_registrations_to_update = self.contents_of_registrations_in_batch(links_of_registrations_to_update)
+                ########
     
             
             # Combine New Records with Existing Records and Remove Duplicates
