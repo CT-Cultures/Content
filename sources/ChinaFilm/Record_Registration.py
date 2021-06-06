@@ -405,6 +405,7 @@ class Registration(object):
 ##########
     def contents_of_new_registrations(self, 
                                       filename: str = "contents_of_registrations",
+                                      batch_size: int = 5,
                                       comprehensive: bool = False,
                                       update_records: bool = False) -> pd.DataFrame:
         """
@@ -435,11 +436,17 @@ class Registration(object):
         if comprehensive:
             links_of_publications = self.links_of_publications()
             links_of_registrations = self.links_of_registrations(links_of_publications)
-            records_latest = self.contents_of_registrations(links_of_registrations)
+            if batch_size == 0:
+                records_latest = self.contents_of_registrations(links_of_registrations)
+            else:
+                records_latest = self.contents_of_registrations_in_batch(links_of_registrations, batch_size=batch_size)
             records_new = records_latest[~records_latest['备案立项号'].isin(records_existing['备案立项号'])]
         else:
             links_of_new_registrations = self.links_of_new_registrations()
-            records_new = self.contents_of_registrations(links_of_new_registrations)
+            if batch_size == 0:
+                records_new = self.contents_of_registrations(links_of_new_registrations)
+            else:
+                records_new = self.contents_of_registrations_in_batch(links_of_new_registrations, batch_size=batch_size)
             records_latest = pd.concat([records_new, records_existing], axis=0, ignore_index=True, sort=False)
             records_latest = records_latest.drop_duplicates(keep='first').reindex()
             
@@ -450,7 +457,7 @@ class Registration(object):
         return records_new
     
 ##########
-    def content_of_registrations_in_batch(self, 
+    def contents_of_registrations_in_batch(self, 
                                           links_of_registrations: pd.DataFrame, 
                                           filename: str = "contents_of_registrations_in_batch",
                                           i: int = 0,
@@ -821,7 +828,7 @@ class Parser_Registration(object):
 
         """       
         # 从备案号提取 年份
-        pat = '[\[【（(][0-9][0-9][0-9][0-9][)）】\]]'
+        pat = '[\[【（(〔][0-9][0-9][0-9][0-9][〕)）】\]]'
         pat = re.compile(pat)
         reg_submit_year = pat.search(str(regid))
 
