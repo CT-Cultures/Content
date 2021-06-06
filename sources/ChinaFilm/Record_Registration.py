@@ -463,7 +463,7 @@ class Registration(object):
             i += batch_size
             print(i, '--------------------')
             
-            self.append_records(records, filenmae)
+            self.append_records(records, filename)
         
         records_accumulated = pd.read_csv(self.path_records + '//' + filename + '.csv')
         records_accumulated.drop_duplicates(inplace=True)
