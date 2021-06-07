@@ -97,7 +97,7 @@ class Registration(object):
     def append_records(self,
                      records: pd.DataFrame, 
                      filename: str, 
-                     backup=True) -> None:
+                     backup: bool = False) -> None:
         """
         This functions saves pd.DataFrame to csv files with backup option
         """
