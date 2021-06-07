@@ -466,7 +466,7 @@ class Registration(object):
         """
         """
         while i < links_of_registrations.shape[0]:
-            records = self.contents_of_registratons(links_of_registrations[i:i+batch_size])
+            records = self.contents_of_registrations(links_of_registrations[i:i+batch_size])
             i += batch_size
             print(i, '--------------------')
             
