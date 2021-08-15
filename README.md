@@ -2,10 +2,14 @@
 
 This Project creats a set of tools for collecting, maintaining and analyzing movie, televisions production database.
 
-(1) Data Sources
-  - China Film
-  -     Registration Records
-  -     Release Records
+(1) Data Sources 数据收集
+  - China Film 中国国家电影局
+  -     Registration Records 电影备案信息
+  -     Release Records 公映许可信息
+  - NRTA 国家广电局
+  -     Registration Records 电视剧备案信息
+  -     Shooting Permit 拍摄许可信息
+  -     Release Records 发行许可信息
 
 (2) Tools
 - Articles
