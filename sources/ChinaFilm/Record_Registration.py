@@ -405,7 +405,7 @@ class Registration(object):
 ##########
     def contents_of_new_registrations(self, 
                                       filename: str = "contents_of_registrations",
-                                      batch_size: int = 5,
+                                      batch_size: int = 0,
                                       comprehensive: bool = False,
                                       update_records: bool = False) -> pd.DataFrame:
         """

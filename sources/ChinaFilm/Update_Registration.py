@@ -14,12 +14,18 @@ dy_reg = Registration()
 
 # Update Registration Records
 #contents_of_registrations = dy_reg.update_records(save_update=False)
-
+contents_of_registrations_new = pd.read_csv('contents_of_registrations_in_batch.csv')
+contents_of_registrations_existing = pd.read_csv('contents_of_registrations.csv')
+###
+contents_of_reg = pd.concat([contents_of_registrations_new, contents_of_registrations_existing], ignore_index=True)
+###
 #%%
-contents_of_registrations = dy_reg.update_records(batch_size=5)
+contents_of_reg = contents_of_reg.drop_duplicates()
+#%%
+contents_of_registrations = dy_reg.update_records(batch_size=0)
 #contents_of_registrations = dy_reg.update_records(i==[pickup_index],batch_size=5)
 #%%
-dy_reg.save_records(contents_of_registrations, 'contents_of_registrations', backup=True)
+dy_reg.save_records(contents_of_reg, 'contents_of_registrations', backup=True)
 #%%
 links_of_new_publications = dy_reg.links_of_new_publications(update_records=True)
 #%%
