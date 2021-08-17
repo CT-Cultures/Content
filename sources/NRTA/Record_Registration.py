@@ -51,6 +51,25 @@ class Registration(object):
         
         # links of pages from web
         self.links_of_pages = self.links_of_pages()
+        
+        # read existing contents of registrations
+        self.contents_of_regstrations_existing = None
+        if os.path.isfile(self.path_records + '//'  + 'contents_of_registrations.json'):
+            self.contents_of_regstrations_existing = pd.read_json(
+                self.path_records + '//'  + 'contents_of_registrations.json')
+            
+        # read existing links of registraions
+        self.links_of_registrations_existing = None
+        if os.path.isfile(self.path_records + '//'  + 'links_of_registrations.json'):
+            self.links_of_registrations_existing = pd.read_json(
+                self.path_records + '//'  + 'links_of_registrations.json')  
+        
+        # read existing links of publications
+        self.links_of_publications_existing = None
+        if os.path.isfile(self.path_records + '//'  + 'links_of_publications.json'):
+            self.links_of_publications_existing = pd.read_json(
+                self.path_records + '//'  + 'links_of_publications.json')  
+        
 
 
         
@@ -79,7 +98,7 @@ class Registration(object):
                        savefile: bool = False) -> pd.DataFrame:
         """
         
-        从 电影局官网 抓取 公示分页 的链接
+        从 NRTA 抓取 公示分页 的链接
         Parameters
         ----------
         filename : str, optional
@@ -128,7 +147,8 @@ class Registration(object):
        
     def links_of_publications(self, 
                               links_of_pages: pd.DataFrame = 'default',
-                              filename: str = 'links_of_publications', 
+                              filename: str = 'links_of_publications',
+                              ignore_old: bool = False,
                               savefile: bool = False) -> pd.DataFrame:
         """
         
@@ -138,7 +158,9 @@ class Registration(object):
         links_of_pages : pd.DataFrame, optional
             DESCRIPTION. The default is 'default'.
         filename : str, optional
-            DESCRIPTION. The default is "links_of_publications".
+            DESCRIPTION. The default is 'links_of_publications'.
+        ignore_old : bool, optional
+            DESCRIPTION. The default is True.
         savefile : bool, optional
             DESCRIPTION. The default is False.
 
@@ -148,7 +170,7 @@ class Registration(object):
             DESCRIPTION.
 
         """
-        # 从 电影局官网 抓取 公映许可证发放 批次页 的 链接
+        # NRTA链接
         if links_of_pages == 'default':
             links_of_pages = self.links_of_pages
         elif links_of_pages == 'empty':
@@ -173,6 +195,12 @@ class Registration(object):
         if len(links_of_publications) > 0:
             links_of_publications = pd.DataFrame(links_of_publications)
             links_of_publications.columns = ['公示批次链接', '公示名称']
+            # Import pub to disregard
+            S_pub_to_ignore = pd.read_json('S_pub_to_disregard.json', orient='index')
+            ls_pub_to_ignore = S_pub_to_ignore[0].tolist()
+            if ignore_old:
+                links_of_publications = links_of_publications[
+                    ~links_of_publications['公示名称'].isin(ls_pub_to_ignore)]
         else:
             links_of_publications = pd.DataFrame(columns = ['公示批次链接', '公示名称'])
             
@@ -257,7 +285,8 @@ class Registration(object):
         contents_of_releases : pd.DataFrame
             ['报备机构', '公示年月', '许可证号', '剧名', '题材', 
              '体裁', '集数', '拍摄日期', '制作周期', '内容提要',
-             '省级管理部门备案意见', '相关部门意见', '备注'
+             '省级管理部门备案意见', '相关部门意见', '备注'，
+             '备案链接', '公示名称', '公示批次链接', ''地区''
              ]
 
         """
@@ -274,7 +303,12 @@ class Registration(object):
                 html = x.read()
                 bsObj = BeautifulSoup(html, 'html5lib')
     
-                record = {'备案链接': reg['备案链接']}
+                record = {'备案链接': reg['备案链接'],
+                          '公示名称':  reg['公示名称'],
+                          '公示批次链接': reg['公示批次链接'],
+                          '地区': reg['地区']
+                          }
+                        
                 for i, td in enumerate(bsObj.body.find_all('table')[2].tbody.tr.find_all('td')):
                     if i == 0: record['报备机构'] = re.sub(' ', '', td.text)
                     elif i == 1: record['公示年月'] = re.sub(' ', '', td.text)
@@ -325,27 +359,31 @@ class Registration(object):
                     lambda x: x.split('：')[1])
                 contents_of_registrations['内容提要'] = contents_of_registrations['内容提要'].apply(
                     lambda x: x.split('：')[1].lstrip('\n+').lstrip('\t+').rstrip('\t+').rstrip('\n+'))
-                contents_of_registrations = contents_of_registrations[['剧名', '集数', '报备机构', '题材', '内容提要', 
-                                                                '公示年月', '许可证号', '体裁', '拍摄日期', '制作周期', 
-                                                                '省级管理部门备案意见', '相关部门意见', '备注'
-                                                                ]].copy()
+                contents_of_registrations = contents_of_registrations[[
+                    '剧名', '集数', '报备机构', '题材', '内容提要', 
+                    '公示年月', '许可证号', '体裁', '拍摄日期', '制作周期', 
+                    '省级管理部门备案意见', '相关部门意见', '备注', 
+                    '备案链接', '公示名称', '公示批次链接', '地区'
+                    ]].copy()
             else:
                 contents_of_registrations = pd.DataFrame()
-                contents_of_registrations.columns = ['剧名', '集数', '报备机构', '题材', '内容提要', '公示年月', 
-                                                     '许可证号', '体裁', '拍摄日期', '制作周期', 
-                                                     '省级管理部门备案意见', '相关部门意见', '备注'
-                                                     ]
+                contents_of_registrations.columns = [
+                    '剧名', '集数', '报备机构', '题材', '内容提要', '公示年月', 
+                    '许可证号', '体裁', '拍摄日期', '制作周期', 
+                    '省级管理部门备案意见', '相关部门意见', '备注',
+                    '备案链接', '公示名称', '公示批次链接', '地区'
+                    ]
             
         if savefile:
             self.save_records(contents_of_registrations, filename, backup=True)
-            print(filename + '.csv updated.')
+            print(filename + '.json updated.')
       
         return contents_of_registrations
     
     ##########    
     def update_records(self, 
                        fn_links_of_publications: str = "links_of_publications_releases",
-                       fn_contents_of_releases: str = "contents_of_releases",
+                       fn_contents_of_registrations: str = "contents_of_registrations",
                        save_update: bool = False
                        ) -> pd.DataFrame:
         """
@@ -365,6 +403,8 @@ class Registration(object):
         None.
 
         """
+        
+        
         # Import Existing Records:
         if os.path.isfile(self.path_records + '//' + fn_links_of_publications + '.json'):
             links_of_publications = pd.read_json(self.path_records + '//' + fn_links_of_publications + '.json', encoding='utf-8-sig')

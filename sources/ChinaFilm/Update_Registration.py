@@ -11,7 +11,15 @@ from Record_Registration import Registration
 
 dy_reg = Registration()
 #%%
-
+df = dy_reg.Refined_Records(update_first =True)
+#%
+#%%
+dy_reg.save_records(contents_of_registrations, 'contents_of_registrations')
+#%%
+contents_of_registrations_existing = pd.read_csv('records/contents_of_registrations.csv').reset_index(drop=True)
+#%%
+contents_of_registrations = contents_of_registrations_existing.sort_values('公示日期', ascending=False)
+#%%
 # Update Registration Records
 #contents_of_registrations = dy_reg.update_records(save_update=False)
 contents_of_registrations_new = pd.read_csv('contents_of_registrations_in_batch.csv')
