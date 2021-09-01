@@ -239,7 +239,6 @@ class Registration(object):
     def contents_of_registrations(self, 
                                  links_of_registrations: pd.DataFrame,
                                  filename: str = "contents_of_registrations", 
-                                 resume_t = None,
                                  savefile: bool = False) -> pd.DataFrame:
         """
         This Function get the contents of TV registrations
@@ -269,15 +268,12 @@ class Registration(object):
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-        for _, reg in links_of_registrations.iterrows():
+        for idx, reg in links_of_registrations.iterrows():
             req = Request(url=reg['备案链接'], headers=self.headers) 
-            if resume_t:
-                if resume_t > _:
-                    continue
             with urlopen(req, context=ctx) as x:
                 html = x.read()
                 bsObj = BeautifulSoup(html, 'html5lib')
-
+    
                 record = {'备案链接': reg['备案链接']}
                 for i, td in enumerate(bsObj.body.find_all('table')[2].tbody.tr.find_all('td')):
                     if i == 0: record['报备机构'] = re.sub(' ', '', td.text)
@@ -320,22 +316,31 @@ class Registration(object):
             if t % 50 == 0:
                 print('------{}------{}--------'.format(t, record['剧名']))
                 time.sleep(5)
-            if t % 500 == 0:
-                self.save_records(pd.DataFrame(ls_records), filename + '_{}'.format(t))
-        if len(ls_records) != 0:
-            contents_of_releases = pd.DataFrame(ls_records)
-        else:
-            contents_of_releases = pd.DataFrame()
-            contents_of_releases.columns = ['报备机构', '公示年月', '许可证号', '剧名', '题材', 
-                                            '体裁', '集数', '拍摄日期', '制作周期', '内容提要',
-                                            '省级管理部门备案意见', '相关部门意见', '备注'
-                                            ]
+            
+            if len(ls_records) != 0:
+                contents_of_registrations = pd.DataFrame(ls_records)
+                contents_of_registrations['许可证号'] = contents_of_registrations['许可证号'].apply(
+                    lambda x: x.split('：')[1].lstrip('\n+').lstrip('\t+').rstrip('\t+').rstrip('\n+'))
+                contents_of_registrations['报备机构'] = contents_of_registrations['报备机构'].apply(
+                    lambda x: x.split('：')[1])
+                contents_of_registrations['内容提要'] = contents_of_registrations['内容提要'].apply(
+                    lambda x: x.split('：')[1].lstrip('\n+').lstrip('\t+').rstrip('\t+').rstrip('\n+'))
+                contents_of_registrations = contents_of_registrations[['剧名', '集数', '报备机构', '题材', '内容提要', 
+                                                                '公示年月', '许可证号', '体裁', '拍摄日期', '制作周期', 
+                                                                '省级管理部门备案意见', '相关部门意见', '备注'
+                                                                ]].copy()
+            else:
+                contents_of_registrations = pd.DataFrame()
+                contents_of_registrations.columns = ['剧名', '集数', '报备机构', '题材', '内容提要', '公示年月', 
+                                                     '许可证号', '体裁', '拍摄日期', '制作周期', 
+                                                     '省级管理部门备案意见', '相关部门意见', '备注'
+                                                     ]
             
         if savefile:
-            self.save_records(contents_of_releases, filename, backup=True)
+            self.save_records(contents_of_registrations, filename, backup=True)
             print(filename + '.csv updated.')
       
-        return contents_of_releases
+        return contents_of_registrations
     
     ##########    
     def update_records(self, 
