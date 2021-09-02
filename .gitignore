@@ -1,4 +1,5 @@
-
-tools/screenplay/__pycache__/Screenplay.cpython-37.pyc
-tools/screenplay/__pycache__/Screenplay.cpython-37.pyc
+tools/models
+sources/ChinaFilm/records/backup
+sources/NRTA/records/backup
+tools/screenplay/__pycache__
 *.pyc
