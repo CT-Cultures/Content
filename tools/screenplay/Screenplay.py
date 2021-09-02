@@ -177,9 +177,9 @@ class Read(object):
                 location = x['Element']
             else: return ''
             if x['IE']:
-                location = re.sub(str(x['IE']), '', location)
+                location = re.sub(re.escape(str(x['IE'])), '', location)
             if x['Time']:
-                location = re.sub(str(x['Time']), '', location)
+                location = re.sub(re.escape(str(x['Time'])), '', location)
                 
             location = re.sub('[-——\.,]+', '', location)
             return location.strip()
