@@ -93,10 +93,10 @@ class Read(object):
         dfsc['Type'] = None
         # identify Scene Headings
         if not pat_sh:
-            pat_sh = ['EXT', 'EXT\.', 'INT', 'INT\.', 
+            pat_sh = ['INT./EXT.', 'INT/EXT', 'EXT', 'EXT\.', 'INT', 'INT\.', 
+                      '内./外.', '内/外.', '内景', '外景', 
                       '内\.', '内,', '外\.', '外,',
-                      '内景', '外景'
-                      ]
+                     ]
         idx_sh = dfsc[dfsc['raw'].str.contains('|'.join(pat_sh))].index
         dfsc.loc[dfsc.index.isin(idx_sh), 'Grp'] = 'H'
         dfsc.loc[dfsc.index.isin(idx_sh), 'Type'] = 'Scene Heading'
@@ -140,12 +140,48 @@ class Read(object):
         dfsc.loc[(dfsc['raw'] == ''), 'nelement'] = list(range(nelement))
         dfsc['nelement'].fillna(method='bfill', inplace=True)
  
-
+        # Group to Elements
         dfsc = dfsc.groupby(['Scene', 'nelement', 'Grp', 'Type'])['raw'].apply(
             lambda x: ' '.join(x)).reset_index()
         dfsc = dfsc[dfsc['raw'] != '']
         dfsc.rename(columns={'raw': 'Element'}, inplace=True)
-               
+    
+        # Break down Scene Headings
+        idx_sh = dfsc[dfsc['Grp'] == 'H'].index
+        
+        dfsc['IE'] = None
+        dfsc['Location'] = None
+        dfsc['Time'] = None
+        
+        # Extract Location
+        dfsc.loc[dfsc.index.isin(idx_sh), 'IE'] = \
+            dfsc.loc[dfsc.index.isin(idx_sh), 'Element'].str.extract(
+                '({})'.format('|'.join(pat_sh)), expand=False)
+        
+        # Extract Time
+        pat_location = '[-——]+\s*(.*)'
+        dfsc.loc[dfsc.index.isin(idx_sh), 'Time'] = \
+            dfsc.loc[dfsc.index.isin(idx_sh), 'Element'].str.extract(
+                pat_location, expand=False)
+        
+        # Extract Location
+        def extract_location(x):
+            if x['Element']:
+                location = x['Element']
+            else: return ''
+            if x['IE']:
+                location = re.sub(str(x['IE']), '', location)
+            if x['Time']:
+                location = re.sub(str(x['Time']), '', location)
+                
+            location = re.sub('[-——\.,]+', '', location)
+            return location.strip()
+
+        dfsc.loc[dfsc.index.isin(idx_sh), 'Location'] = \
+            dfsc.loc[dfsc.index.isin(idx_sh), :].apply(
+                lambda x: extract_location(x), axis=1)
+
+            
         return dfsc
     
     @staticmethod
@@ -194,10 +230,10 @@ class Read(object):
         
         # identify Scene Headings
         if not pat_sh:
-            pat_sh = ['EXT', 'EXT\.', 'INT', 'INT\.', 
+            pat_sh = ['INT./EXT.', 'INT/EXT', 'EXT', 'EXT\.', 'INT', 'INT\.', 
+                      '内./外.', '内/外.', '内景', '外景', 
                       '内\.', '内,', '外\.', '外,',
-                      '内景', '外景'
-                      ]
+                     ]
         idx_sh = script[script['raw'].str.contains('|'.join(pat_sh))].index
         script.loc[script.index.isin(idx_sh), 'ptype'] = 'Scene Heading'
         
@@ -487,8 +523,10 @@ class Translate(object):
     
     def __init__(self, sc: str = None):   
         super(Translate, self).__init__()
-        
-    def Baidu(str_to_trans='apple', lang_from='zh', lang_to='en'):
+    
+    
+    @staticmethod    
+    def Baidu(s:str='apple', lang_from='zh', lang_to='en'):
         time.sleep(2)
         #path_translink = 'http://api.fanyi.baidu.com/api/trans/vip/translate'
         path_translink = 'https://fanyi-api.baidu.com/api/trans/vip/translate'
@@ -497,7 +535,7 @@ class Translate(object):
         appid = '20200218000385369'
         passcode = 'phecLsPI8EnkvjRHQ8HU'
         salt = randint(1e9, 9e9)
-        q = str_to_trans
+        q = s
         for_sign = appid + q + str(salt) + passcode
         sign = hashlib.md5(for_sign.encode()).hexdigest()
         
