@@ -103,7 +103,8 @@ class Read(object):
                       '内景', '外景'
                       ]
         idx_sh = dfsc[dfsc['raw'].str.contains('|'.join(pat_sh))].index
-        dfsc.loc[dfsc.index.isin(idx_sh), 'Grp'] = 'Scene Heading'
+        dfsc.loc[dfsc.index.isin(idx_sh), 'Grp'] = 'H'
+        dfsc.loc[dfsc.index.isin(idx_sh), 'Type'] = 'Scene Heading'
         
         # regenerate Scene Numbers
         dfsc['Scene'] = None
@@ -114,17 +115,15 @@ class Read(object):
         dfsc['Scene'].astype('int')
         
         # Remove leading and trailing spaces
-        dfsc.loc[dfsc['Grp'] == 'Scene Heading', 'raw'] = \
-            dfsc.loc[dfsc['Grp'] == 'Scene Heading', 'raw'].apply(str.strip)
+        dfsc.loc[dfsc['Grp'] == 'H', 'raw'] = \
+            dfsc.loc[dfsc['Grp'] == 'H', 'raw'].apply(str.strip)
          # Identify Action
         dfsc['nspaces'] = dfsc['raw'].apply(lambda x: len(x)-len(x.lstrip()))
         mid = (dfsc['nspaces'].max() - dfsc['nspaces'].min()) //2
-        dfsc.loc[(dfsc['Grp'] != 'Scene Heading') & 
-                 (dfsc['nspaces'] <= mid), 'Grp'] = 'A'
+        dfsc.loc[(dfsc['Grp'] != 'H') & (dfsc['nspaces'] <= mid), 'Grp'] = 'A'
         dfsc.loc[dfsc['Grp'] == 'A', 'Type'] = 'Action'
         # Identify Dialogue
-        dfsc.loc[(dfsc['Grp'] != 'Scene Heading') &                 
-                 (dfsc['nspaces'] > 15), 'Grp'] = 'D'
+        dfsc.loc[(dfsc['Grp'] != 'H') & (dfsc['nspaces'] > 15), 'Grp'] = 'D'
         dfsc['raw'] = dfsc['raw'].apply(str.strip)
         
         # Identify Dchar in D Group
