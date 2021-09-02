@@ -129,10 +129,17 @@ class Read(object):
             dfsc.loc[dfsc['Grp'] == 'D', 'Type'].fillna('Dialogue')
             
             
-        # Identify Transition in A Group
-        idx_transition = dfsc[(dfsc['Grp'] == 'A') & dfsc['raw'].str.isupper()].index
+        # Identify SHOT and Transition in A Group
+        idx_shot_and_transition = dfsc[(dfsc['Grp'] == 'A') & dfsc['raw'].str.isupper()].index
+        dfsc.loc[dfsc.index.isin(idx_shot_and_transition), 'Grp'] = 'S'
+        dfsc.loc[dfsc.index.isin(idx_shot_and_transition), 'Type'] = 'Shot'
+        
+        pat_shot = ['FADE', 'CUT', 'DISSOLVE', 'INTERCUT']
+        idx_transition = dfsc[(dfsc.index.isin(idx_shot_and_transition)) & 
+                dfsc['raw'].str.contains('|'.join(pat_shot), flags=re.IGNORECASE)].index
         dfsc.loc[dfsc.index.isin(idx_transition), 'Grp'] = 'T'
         dfsc.loc[dfsc.index.isin(idx_transition), 'Type'] = 'Transition'
+        
         
         # Combine Elements
         dfsc['nelement'] = None
@@ -181,7 +188,8 @@ class Read(object):
             dfsc.loc[dfsc.index.isin(idx_sh), :].apply(
                 lambda x: extract_location(x), axis=1)
 
-            
+        # Clean SC
+        dfsc['Element'] = dfsc['Element'].apply(lambda x: re.sub(':SC:', '', x).strip())
         return dfsc
     
     @staticmethod
