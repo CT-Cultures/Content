@@ -116,9 +116,17 @@ class Read(object):
                  (dfsc['nspaces'] > 15), 'Grp'] = 'D'
         dfsc['raw'] = dfsc['raw'].apply(str.strip)
         
-        # Identify Dchar in Dialogue Group
-        idx_dchar = idx_dchar = dfsc[(dfsc['Grp'] == 'D') & dfsc['raw'].str.isupper()].index
+        # Identify Dchar in D Group
+        idx_dchar = dfsc[(dfsc['Grp'] == 'D') & dfsc['raw'].str.isupper()].index
         dfsc.loc[dfsc.index.isin(idx_dchar), 'Type'] = 'Character'
+        # Identify Dialog in D Group
+        dfsc.loc[dfsc['Grp'] == 'D', 'Type'] = \
+            dfsc.loc[dfsc['Grp'] == 'D', 'Type'].fillna('Dialogue')
+            
+            
+        # Identify Transition in A Group
+        idx_transition = dfsc[(dfsc['Grp'] == 'A') & dfsc['raw'].str.isupper()].index
+        dfsc.loc[dfsc.index.isin(idx_transition), 'Grp'] = 'T'
         
         return dfsc
     
