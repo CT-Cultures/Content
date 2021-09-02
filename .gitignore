@@ -3,3 +3,4 @@ sources/ChinaFilm/records/backup
 sources/NRTA/records/backup
 tools/screenplay/__pycache__
 *.pyc
+git.ipynb
