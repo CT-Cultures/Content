@@ -14,6 +14,7 @@ from xml.dom import minidom
 import lxml
 import lxml.etree as et
 import codecs
+import math
 
 
 ## For Translate
@@ -108,17 +109,17 @@ class Read(object):
         dfsc['Scene'].fillna(method='ffill', inplace=True)
         dfsc['Scene'].fillna(-1, inplace=True)
         dfsc['Scene'].astype('int')
-        
-        # Remove leading and trailing spaces
+        # Remove leading and trailing spaces in Scene Heading
         dfsc.loc[dfsc['Grp'] == 'H', 'raw'] = \
             dfsc.loc[dfsc['Grp'] == 'H', 'raw'].apply(str.strip)
+            
          # Identify Action
         dfsc['nspaces'] = dfsc['raw'].apply(lambda x: len(x)-len(x.lstrip()))
-        mid = (dfsc['nspaces'].max() - dfsc['nspaces'].min()) //2
+        mid = (dfsc['nspaces'].max() - dfsc['nspaces'].min()) //2 - 2
         dfsc.loc[(dfsc['Grp'] != 'H') & (dfsc['nspaces'] <= mid), 'Grp'] = 'A'
         dfsc.loc[dfsc['Grp'] == 'A', 'Type'] = 'Action'
         # Identify Dialogue
-        dfsc.loc[(dfsc['Grp'] != 'H') & (dfsc['nspaces'] > 15), 'Grp'] = 'D'
+        dfsc.loc[(dfsc['Grp'] != 'H') & (dfsc['nspaces'] > mid), 'Grp'] = 'D'
         dfsc['raw'] = dfsc['raw'].apply(str.strip)
         
         # Identify Dchar in D Group
