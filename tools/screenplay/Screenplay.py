@@ -117,7 +117,7 @@ class Read(object):
         dfsc['raw'] = dfsc['raw'].apply(str.strip)
         
         # Identify Dchar in Dialogue Group
-        idx_dchar = dfsc.loc[dfsc['Grp'] == 'D', 'raw'].str.isupper().index
+        idx_dchar = idx_dchar = dfsc[(dfsc['Grp'] == 'D') & dfsc['raw'].str.isupper()].index
         dfsc.loc[dfsc.index.isin(idx_dchar), 'Type'] = 'Character'
         
         return dfsc

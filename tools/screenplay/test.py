@@ -17,4 +17,3 @@ fp = 'input/Avatar (2009 film)_script.txt'
 
 #%%
 avatar = scp.read.text(fp)
-print(avatar)
