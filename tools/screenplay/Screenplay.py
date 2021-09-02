@@ -31,7 +31,7 @@ class Screenplay(object):
         super(Screenplay, self).__init__()
         self.sc = sc
         self.elements = Elements()
-        self.reformat = Reformat.to_OpenXML()
+        self.export = Export().to_OpenXML()
         self.groupSH2Name = {
                 'A': 'Action Group',
                 'D': 'Dialogue Group',
@@ -53,11 +53,6 @@ class Screenplay(object):
         
         # Scene heading element
     
-    def open(self, scpath: str):
-        pass
-    
-    def to_json(self, filepath: str):
-        self.sc.to_json(filepath)
 
 class Read(object):
 
@@ -340,10 +335,10 @@ class Elements(object):
        return sc
    
 ######################################################
-class Reformat(object):
+class Export(object):
     
     def __init__(self):
-        super(Reformat, self).__init__()
+        super(Export, self).__init__()
     
     class to_OpenXML(object):
         
