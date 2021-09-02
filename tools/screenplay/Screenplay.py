@@ -104,15 +104,26 @@ class Read(object):
                       ]
         idx_sh = dfsc[dfsc['raw'].str.contains('|'.join(pat_sh))].index
         dfsc.loc[dfsc.index.isin(idx_sh), 'Grp'] = 'Scene Heading'
+        
+        # regenerate Scene Numbers
+        dfsc['Scene'] = None
+        nscenes = len(idx_sh)
+        dfsc.loc[dfsc.index.isin(idx_sh), 'Scene'] = list(range(1, nscenes+1))
+        dfsc['Scene'].fillna(method='ffill', inplace=True)
+        dfsc['Scene'].fillna(-1, inplace=True)
+        dfsc['Scene'].astype('int')
+        
         # Remove leading and trailing spaces
         dfsc.loc[dfsc['Grp'] == 'Scene Heading', 'raw'] = \
             dfsc.loc[dfsc['Grp'] == 'Scene Heading', 'raw'].apply(str.strip)
-         # Identify Action and Dialogue
+         # Identify Action
         dfsc['nspaces'] = dfsc['raw'].apply(lambda x: len(x)-len(x.lstrip()))
         mid = (dfsc['nspaces'].max() - dfsc['nspaces'].min()) //2
         dfsc.loc[(dfsc['Grp'] != 'Scene Heading') & 
                  (dfsc['nspaces'] <= mid), 'Grp'] = 'A'
-        dfsc.loc[(dfsc['Grp'] != 'Scene Heading') & 
+        dfsc.loc[dfsc['Grp'] == 'A', 'Type'] = 'Action'
+        # Identify Dialogue
+        dfsc.loc[(dfsc['Grp'] != 'Scene Heading') &                 
                  (dfsc['nspaces'] > 15), 'Grp'] = 'D'
         dfsc['raw'] = dfsc['raw'].apply(str.strip)
         
@@ -127,7 +138,20 @@ class Read(object):
         # Identify Transition in A Group
         idx_transition = dfsc[(dfsc['Grp'] == 'A') & dfsc['raw'].str.isupper()].index
         dfsc.loc[dfsc.index.isin(idx_transition), 'Grp'] = 'T'
+        dfsc.loc[dfsc.index.isin(idx_transition), 'Type'] = 'Transition'
         
+        # Combine Elements
+        dfsc['nelement'] = None
+        nelement = dfsc[dfsc['raw'] == ''].shape[0]
+        dfsc.loc[(dfsc['raw'] == ''), 'nelement'] = list(range(nelement))
+        dfsc['nelement'].fillna(method='bfill', inplace=True)
+ 
+
+        dfsc = dfsc.groupby(['Scene', 'nelement', 'Grp', 'Type'])['raw'].apply(
+            lambda x: ' '.join(x)).reset_index()
+        dfsc = dfsc[dfsc['raw'] != '']
+        dfsc.rename(columns={'raw': 'Element'}, inplace=True)
+               
         return dfsc
     
     @staticmethod
