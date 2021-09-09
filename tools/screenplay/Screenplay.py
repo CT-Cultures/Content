@@ -153,6 +153,10 @@ class Read(object):
             lambda x: ' '.join(x)).reset_index()
         dfsc = dfsc[dfsc['raw'] != '']
         dfsc.rename(columns={'raw': 'Element'}, inplace=True)
+ 
+        # Clean SC
+        dfsc['Element'] = dfsc['Element'].apply(lambda x: re.sub(':SC:', '', x).strip())
+        
     
         # Break down Scene Headings
         idx_sh = dfsc[dfsc['Grp'] == 'H'].index
@@ -171,6 +175,7 @@ class Read(object):
         dfsc.loc[dfsc.index.isin(idx_sh), 'Time'] = \
             dfsc.loc[dfsc.index.isin(idx_sh), 'Element'].str.extract(
                 pat_location, expand=False)
+
         
         # Extract Location
         def extract_location(x):
@@ -189,8 +194,6 @@ class Read(object):
             dfsc.loc[dfsc.index.isin(idx_sh), :].apply(
                 lambda x: extract_location(x), axis=1)
 
-        # Clean SC
-        dfsc['Element'] = dfsc['Element'].apply(lambda x: re.sub(':SC:', '', x).strip())
         return dfsc
     
     @staticmethod

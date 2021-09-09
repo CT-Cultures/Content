@@ -66,7 +66,21 @@ class Registration(object):
             chromeoptions.add_argument('--disable-dev-shm-usage')
             self.driver = webdriver.Chrome(options=chromeoptions)
         else:
-            self.driver = driver
+            self.driver = driver 
+        
+        self.links_of_publications_existing = None
+        self.links_of_registrations_existing = None
+        self.contents_of_registratons_existing = None
+        if os.path.isfile(self.path_records + '//' + 'links_of_publications.json'):
+           self.links_of_registrations_existing = pd.read_json(
+               self.path_records + '//' + 'links_of_publications.json')       
+        if os.path.isfile(self.path_records + '//' + 'links_of_registrations.json'):
+            self.links_of_registrations_existing = pd.read_json(
+                self.path_records + '//' + 'links_of_registrations.json')
+        if os.path.isfile(self.path_records + '//' + 'contents_of_registrations.json'):
+            self.contents_of_registrations_existing = pd.read_json(
+                self.path_records + '//' + 'contents_of_registrations.json')        
+        
         
         #if re.match('win', platform):
         #    self.driver = webdriver.Chrome(executable_path="requirements/chromedriver.exe",  options=chromeoptions)
@@ -86,12 +100,12 @@ class Registration(object):
         """
         dt = datetime.datetime.now()
         appendix_dt = '_' + str(dt.strftime("%Y%m%d")) + '_'+ str(dt.strftime("%H%M"))      
-        path_file = self.path_records + '/' + filename + '.csv'
-        path_file_bk = self.path_records + '/backup/' + filename + appendix_dt + '.csv'
+        path_file = self.path_records + '/' + filename + '.json'
+        path_file_bk = self.path_records + '/backup/' + filename + appendix_dt + '.json'
         if backup:
             if os.path.isfile(path_file):
                 os.rename(path_file, path_file_bk)
-        records.to_csv(path_file, encoding='utf-8-sig', index=False)
+        records.to_json(path_file)
         print('file saved to: ' + filename + '.csv with a total of ', records.shape[0], ' records.')
 ##########
     def append_records(self,

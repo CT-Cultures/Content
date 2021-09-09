@@ -11,12 +11,14 @@ from Record_Registration import Registration
 
 dy_reg = Registration()
 #%%
+contents_of_registrations_existing = dy_reg.contents_of_registrations_existing
 
 # Update Registration Records
 #contents_of_registrations = dy_reg.update_records(save_update=False)
-
 #%%
-contents_of_registrations = dy_reg.update_records(batch_size=5)
+contents_of_registrations = pd.read_csv('contents_of_registrations_20210814_1229.csv', index_col=0, encoding='utf-8-sig')
+#%%
+contents_of_registrations = dy_reg.update_records('contents_of_registrations.csv', index_col=0, encoding='utf-sig-8')
 #contents_of_registrations = dy_reg.update_records(i==[pickup_index],batch_size=5)
 #%%
 dy_reg.save_records(contents_of_registrations, 'contents_of_registrations', backup=True)

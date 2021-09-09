@@ -203,14 +203,14 @@ class Release(object):
 
         """
         # Import Existing Records:
-        if os.path.isfile(self.path_records + '//' + fn_links_of_publications + '.csv'):
-            links_of_publications = pd.read_csv(self.path_records + '//' + fn_links_of_publications + '.csv', encoding='utf-8-sig')
+        if os.path.isfile(self.path_records + '//' + fn_links_of_publications + '.json'):
+            links_of_publications = pd.read_csv(self.path_records + '//' + fn_links_of_publications + '.json')
         else:
             links_of_publications = self.links_of_publications('empty')
         
             
         if os.path.isfile(self.path_records + '//' + fn_contents_of_releases + '.csv'):
-            contents_of_releases = pd.read_csv(self.path_records + '//' + fn_contents_of_releases + '.csv', encoding='utf-8-sig')
+            contents_of_releases = pd.read_csv(self.path_records + '//' + fn_contents_of_releases + '.json')
         else:
             contents_of_releases = self.contents_of_releases(links_of_publications = pd.DataFrame())
         
