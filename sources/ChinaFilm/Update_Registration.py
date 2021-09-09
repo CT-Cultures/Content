@@ -14,4 +14,6 @@ dy_reg = Registration()
 contents_of_registrations_existing = dy_reg.contents_of_registrations_existing
 
 #%%
-links_of_pages_latest = dy_reg.links_of_pages
+links_of_new_publications = dy_reg.links_of_new_publications()
+#%%
+links_of_publications_exisiting_from_contents = contents_of_registrations_existing['公示批次链接'].unique()

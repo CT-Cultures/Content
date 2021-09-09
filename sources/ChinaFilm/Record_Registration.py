@@ -79,16 +79,7 @@ class Registration(object):
                 self.path_records + '//' + 'links_of_registrations.json')
         if os.path.isfile(self.path_records + '//' + 'contents_of_registrations.json'):
             self.contents_of_registrations_existing = pd.read_json(
-                self.path_records + '//' + 'contents_of_registrations.json')        
-        
-        
-        #if re.match('win', platform):
-        #    self.driver = webdriver.Chrome(executable_path="requirements/chromedriver.exe",  options=chromeoptions)
-        #elif re.match('linux', platform):
-        #    self.driver = webdriver.Chrome(executable_path="requirements/chromedriver",  options=chromeoptions)
-        #else:
-        #    self.driver = webdriver.Chrome(executable_path="requirements/chromedriver",  options=chromeoptions)
-            
+                self.path_records + '//' + 'contents_of_registrations.json')
         
 ##########        
     def save_records(self,
@@ -106,7 +97,9 @@ class Registration(object):
             if os.path.isfile(path_file):
                 os.rename(path_file, path_file_bk)
         records.to_json(path_file)
-        print('file saved to: ' + filename + '.csv with a total of ', records.shape[0], ' records.')
+        print('file saved to: ' + filename + '.json with a total of ', 
+              records.shape[0], ' records.')
+        
 ##########
     def append_records(self,
                      records: pd.DataFrame, 
@@ -214,6 +207,7 @@ class Registration(object):
            
         if savefile:
             self.save_records(links_of_publications, filename, backup=True)
+            
         return links_of_publications
 ##########
 
@@ -332,27 +326,22 @@ class Registration(object):
             DESCRIPTION.
 
         """
-        # Import Existing Records
-        if os.path.isfile(self.path_records + '//' + filename + '.csv'):
-            records_existing = pd.read_csv(self.path_records + '//' + filename + '.csv', encoding='utf-8-sig')
-        else:
-            records_existing = self.links_of_registrations(links_of_publications = pd.DataFrame())            
-            
-        if comprehensive:
-            links_of_publications = self.links_of_publications()
-            records_latest = self.links_of_registrations(links_of_publications)
-            records_new = records_latest[~records_latest['备案详细页链接'].isin(records_existing['备案详细页链接'])]
-        else:
-            links_of_new_publications = self.links_of_new_publications(update_records=update_records)
-            records_new = self.links_of_registrations(links_of_new_publications)
-            records_latest = pd.concat([records_new, records_existing], axis=0, ignore_index=True, sort=False)
-            records_latest = records_latest.drop_duplicates(keep='first')
+        # Get latest links of publication from NRTA
+        links_of_publications_latest = self.links_of_publications()
+        links_of_registrations_latest = self.links_of_registrations(
+            links_of_publications_latest)
+
+        links_of_registrations_new = links_of_registrations_latest[
+            ~links_of_registrations_latest['备案详细页链接'].isin(
+                self.links_of_registrations_existing['备案详细页链接'])
+            ]
              
         if update_records:
-            self.save_records(records_latest , filename, backup=True)
-            print(filename + '.csv updated.')
+            self.save_records(links_of_registrations_latest , 
+                              filename, backup=True)
+            print(filename + '.json updated.')
             
-        return records_new
+        return links_of_registrations_new
 
 ##########
     def contents_of_registrations(self, 
@@ -417,69 +406,63 @@ class Registration(object):
 
 ##########
     def contents_of_new_registrations(self, 
-                                      filename: str = "contents_of_registrations",
-                                      batch_size: int = 5,
-                                      comprehensive: bool = False,
-                                      update_records: bool = False) -> pd.DataFrame:
-        """
-        This functions gets the contents of new registrations
-
+        filename: str = "contents_of_registrations",
+        save_update: bool = False) -> pd.DataFrame:
+        """      
         Parameters
         ----------
         filename : str, optional
-            DESCRIPTION. The default is "PubTheatricalRegistration_info_allregistrations".
-        update_records : bool, optional
-            DESCRIPTION. The default is False. If True, will update:
-                            links_of_new_publications,
-                            links_of_new_registrations,
-                            contents_of_new_registrations
+            DESCRIPTION. The default is "contents_of_registrations".
+        save_update : bool, optional
+            DESCRIPTION. The default is False.
 
-        Returnss
+        Returns
         -------
-        DataFrame
+        contents_of_registrations_new : TYPE
             DESCRIPTION.
 
         """
-        # Import Existing Records
-        if os.path.isfile(self.path_records + '//' + filename + '.csv'):
-            records_existing = pd.read_csv(self.path_records + '//' + filename + '.csv', encoding='utf-8-sig')
-        else:
-            records_existing = self.contents_of_registrations(links_of_registrations = pd.DataFrame())
-        
-        if comprehensive:
-            links_of_publications = self.links_of_publications()
-            links_of_registrations = self.links_of_registrations(links_of_publications)
-            if batch_size == 0:
-                records_latest = self.contents_of_registrations(links_of_registrations)
-            else:
-                records_latest = self.contents_of_registrations_in_batch(links_of_registrations, batch_size=batch_size)
-            records_new = records_latest[~records_latest['备案立项号'].isin(records_existing['备案立项号'])]
-        else:
-            links_of_new_registrations = self.links_of_new_registrations()
-            if batch_size == 0:
-                records_new = self.contents_of_registrations(links_of_new_registrations)
-            else:
-                records_new = self.contents_of_registrations_in_batch(links_of_new_registrations, batch_size=batch_size)
-            records_latest = pd.concat([records_new, records_existing], axis=0, ignore_index=True, sort=False)
-            records_latest = records_latest.drop_duplicates(keep='first').reindex()
-            
-        if update_records:
-              self.save_records(records_latest, filename, backup=True)
-              print("Contents of Registrations updated: ", + len(links_of_new_registrations ), " record(s).")
 
-        return records_new
-    
+        # Get latest links of publication from NRTA
+        links_of_publications_latest = self.links_of_publications()
+        links_of_registrations_latest = self.links_of_registrations(
+            links_of_publications_latest)
+        
+        links_of_registrations_new = links_of_registrations_latest[
+            ~links_of_registrations_latest['备案详细页链接'].isin(
+                self.contents_of_registrations_existing['备案详细页链接'])
+            ]
+        
+        # Concat existing contents with new contents
+        contents_of_registrations_new = self.contents_of_registrations(
+            links_of_registrations_new)
+
+        if save_update:        
+        # Save Updated Records
+            self.save_records(links_of_publications_latest, 
+                              'links_of_publications')
+            self.save_records(links_of_registrations_latest, 
+                                  'links_of_registrations')       
+
+            
+            n_new_records = links_of_registrations_new.shape[0]
+            print('Records from ' + str(n_new_records)
+                  + ' publication(s) are added to links of registrations.')
+            
+        return  contents_of_registrations_new   
 ##########
     def contents_of_registrations_in_batch(self, 
-                                          links_of_registrations: pd.DataFrame, 
-                                          filename: str = "contents_of_registrations_in_batch",
-                                          i: int = 0,
-                                          batch_size: int = 5,
-                                          ) -> pd.DataFrame:
+        links_of_registrations: pd.DataFrame, 
+        filename: str = "contents_of_registrations_in_batch",
+        i: int = 0,
+        batch_size: int = 5,
+        ) -> pd.DataFrame:
         """
+        WIP
         """
         while i < links_of_registrations.shape[0]:
-            records = self.contents_of_registrations(links_of_registrations[i:i+batch_size])
+            records = self.contents_of_registrations(
+                links_of_registrations[i:i+batch_size])
             i += batch_size
             print(i, '--------------------')
             
@@ -491,12 +474,12 @@ class Registration(object):
         
 ##########
     def update_records(self, 
-                       fn_links_of_publications: str = "links_of_publications",
-                       fn_links_of_registrations: str = "links_of_registrations" ,
-                       fn_contents_of_registrations: str = "contents_of_registrations",
-                       batch_size: int = 0,
-                       save_update: bool = False
-                       ) -> pd.DataFrame:
+        fn_links_of_publications: str = "links_of_publications",
+        fn_links_of_registrations: str = "links_of_registrations" ,
+        fn_contents_of_registrations: str = "contents_of_registrations",
+        how:str ='quick',
+        save_update: bool = False
+        ) -> pd.DataFrame:
         """
         This functions updates the records to latest.
 
@@ -517,110 +500,73 @@ class Registration(object):
             DESCRIPTION.
 
         """
-        
-        # Import Existing Records:
-        if os.path.isfile(
-                self.path_records + '//' + fn_links_of_publications + '.json'):
-            links_of_publications = pd.read_json(
-                self.path_records + '//' + fn_links_of_publications + '.json')
-        else:
-            links_of_publications = self.links_of_publications('empty')
-        
-        if os.path.isfile(
-                self.path_records + '//' + fn_links_of_registrations + '.json'):
-            links_of_registrations = pd.read_json(
-                self.path_records + '//' + fn_links_of_registrations + '.json')
-        else:
-            links_of_registrations = self.links_of_registrations(
-                links_of_publications=pd.DataFrame())
+        # Compares existing links of registrations in Content df with 
+        # latest links in links of registrations df
+        if how == 'comprehensive':
+            # Get latest links of publication from NRTA
+            links_of_publications_latest = self.links_of_publications()
+            links_of_registrations_latest = self.links_of_registrations(
+                links_of_publications_latest)
             
-        if os.path.isfile(
-                self.path_records + '//' + fn_contents_of_registrations + '.csv'):
-            contents_of_registrations = pd.read_json(
-                self.path_records + '//' + fn_contents_of_registrations + '.json', encoding='utf-8-sig')
-        else:
-            contents_of_registrations = self.contents_of_registrations(
-                links_of_registrations = pd.DataFrame())
+            links_of_registrations_new = links_of_registrations_latest[
+                ~links_of_registrations_latest['备案详细页链接'].isin(
+                    self.contents_of_registrations_existing['备案详细页链接'])
+                ]
         
-        links_of_publications_latest = self.links_of_publications()
-
-        # Find Records to update
-        lp_latestest_not_in_lp_old = links_of_publications_latest[~links_of_publications_latest['公示批次链接'].isin(links_of_publications['公示批次链接'])]
-        lp_old_not_in_lp_latest = links_of_publications[~links_of_publications['公示批次链接'].isin(links_of_publications_latest['公示批次链接'])]
-        
-        lp_latest_not_in_lr_old = links_of_publications_latest[~links_of_publications_latest['公示批次链接'].isin(links_of_registrations['公示批次链接'])]
-        lr_old_not_in_lp_latest = links_of_registrations[~links_of_registrations['公示批次链接'].isin(links_of_publications_latest['公示批次链接'])]
-        
-        lp_latest_not_in_cr_old = links_of_publications_latest[~links_of_publications_latest['公示批次链接'].isin(contents_of_registrations['公示批次链接'])]
-        cr_old_not_in_lp_latest = contents_of_registrations[~contents_of_registrations['公示批次链接'].isin(links_of_publications_latest['公示批次链接'])]
-        
-        lr_old_not_in_cr_old = links_of_registrations[~links_of_registrations['备案详细页链接'].isin(contents_of_registrations['备案详细页链接'])]
-        cr_old_not_in_lr_old = contents_of_registrations[~contents_of_registrations['备案详细页链接'].isin(links_of_registrations['备案详细页链接'])]
-        
-        links_of_publications_to_update = pd.concat([   lp_latestest_not_in_lp_old['公示批次链接'],
-                                                        lp_old_not_in_lp_latest['公示批次链接'],
-                                                        lp_latest_not_in_lr_old['公示批次链接'],
-                                                        lr_old_not_in_lp_latest['公示批次链接'],
-                                                        lp_latest_not_in_cr_old['公示批次链接'],
-                                                        cr_old_not_in_lp_latest['公示批次链接'],
-                                                        lr_old_not_in_cr_old['公示批次链接'],
-                                                        cr_old_not_in_lr_old['公示批次链接']
-                                                    ], axis=0, ignore_index=True)
-        
-        links_of_publications_to_update.drop_duplicates(inplace=True)
-        links_of_publications_to_update = links_of_publications_to_update.reset_index()
-
-        if links_of_publications_to_update.shape[0] != 0:
-            # Update corresponding records.      
-            links_of_registrations_to_update = self.links_of_registrations(links_of_publications_to_update) 
-            print(links_of_registrations_to_update.shape[0], ' new registrations are found for update.')
-            if batch_size == 0:
-                contents_of_registrations_to_update = self.contents_of_registrations(links_of_registrations_to_update)
-            else:
-                ############# write batch update here
-                contents_of_registrations_to_update = self.contents_of_registrations_in_batch(links_of_registrations_to_update)
-                ########
-    
+        # Compares existing links of publications in Content df with 
+        # latest links in links of publications df
+        if how == 'quick':
             
-            # Combine New Records with Existing Records and Remove Duplicates
-            links_of_registrations_updated = pd.concat([links_of_registrations,
-                                                        links_of_registrations_to_update],
-                                                       axis=0, ignore_index=True)
-            links_of_registrations_updated.drop_duplicates(subset='备案详细页链接', inplace=True)
-            links_of_registrations.sort_values(by=['公示日期','备案详细页链接'], ascending=False, inplace=True)
-            links_of_registrations.reset_index(drop=True, inplace=True)
+            links_of_publications_latest = self.links_of_publications()
+            links_of_publications_new = links_of_publications_latest[
+                ~links_of_publications_latest['公示批次链接'].isin(
+                    self.contents_of_registrations_existing['公示批次链接'])
+                ]
+            links_of_registrations_new = self.links_of_registrations(
+                links_of_publications_new)
+         
+        # Concat existing contents with new contents
+        contents_of_registrations_new = self.contents_of_registrations(
+            links_of_registrations_new)
+        
+        contents_of_registrations_latest = pd.concat(
+            [self.contents_of_registrations_existing, contents_of_registrations_new],
+            ignore_index=True)
+        
+        contents_of_registrations_latest.drop_duplicates(inplace=True)
+        
+        contents_of_registrations_latest = contents_of_registrations_latest.sort_values(
+            '公示日期', ascending=True).reset_index(drop=True)
+        
+        contents_of_registrations_latest = contents_of_registrations_latest.sort_values(
+            '公示日期', ascending=False)
             
-            contents_of_registrations_updated = pd.concat([contents_of_registrations,
-                                                           contents_of_registrations_to_update],
-                                                          axis=0, ignore_index=True)        
-            contents_of_registrations_updated.drop_duplicates(subset=['备案详细页链接','公示批次链接'], inplace=True)
-            contents_of_registrations_updated.sort_values(by=['公示日期','备案详细页链接'], ascending=False, inplace=True)
-            contents_of_registrations_updated.reset_index(drop=True, inplace=True)
-        else:
-            links_of_publications_latest = links_of_publications
-            links_of_registrations_updated = links_of_registrations
-            contents_of_registrations_updated = contents_of_registrations
-            contents_of_registrations_updated.sort_values(by=['公示日期','备案详细页链接'], ascending=False, inplace=True)
-            contents_of_registrations_updated.reset_index(drop=True, inplace=True)
         
         if save_update:        
         # Save Updated Records
-            self.save_records(links_of_publications_latest, fn_links_of_publications)
-            self.save_records(links_of_registrations_updated, fn_links_of_registrations)       
-            self.save_records(contents_of_registrations_updated, fn_contents_of_registrations)
-            print('Records from ' + str(len(links_of_publications_to_update))
+            self.save_records(links_of_publications_latest, 
+                              fn_links_of_publications)
+            if 'links_of_registrations_latest' in locals():
+                self.save_records(links_of_registrations_latest, 
+                                  fn_links_of_registrations)       
+            self.save_records(contents_of_registrations_latest, 
+                              fn_contents_of_registrations)
+            
+            n_new_records = contents_of_registrations_latest.shape[0] - \
+                self.contents_of_registrations_existing[0]
+            print('Records from ' + str(n_new_records)
                   + ' publication(s) are added to contents of registrations.')
             
-        return contents_of_registrations_updated
+        return  contents_of_registrations_latest
 
 
 ##########    
     def Refined_Records(self, 
-                             fn_raw: str = "contents_of_registrations",
-                             fn_refined: str = 'contents_of_registrations_refined',
-                             update_first: bool = True,
-                             save_refined: bool = False
-                             ) -> pd.DataFrame:
+        fn_raw: str = "contents_of_registrations",
+        fn_refined: str = 'contents_of_registrations_refined',
+        update_first: bool = True,
+        save_refined: bool = False
+        ) -> pd.DataFrame:
         """
         This functions refines and parsers raw registration data to features.
 
@@ -644,8 +590,9 @@ class Registration(object):
         if update_first:
             contents_of_registrations_raw = self.update_records()
         
-        elif os.path.isfile(self.path_records + '//' + fn_raw + '.csv'):
-            contents_of_registrations_raw = pd.read_csv(self.path_records + '//' + fn_raw + '.csv', encoding='utf-8-sig')
+        elif os.path.isfile(self.path_records + '//' + fn_raw + '.json'):
+            contents_of_registrations_raw = pd.read_json(
+                self.path_records + '//' + fn_raw + '.json')
         else:
             contents_of_registrations_raw = self.contents_of_registrations(pd.DataFrame())
 
