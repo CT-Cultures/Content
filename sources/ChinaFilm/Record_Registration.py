@@ -50,7 +50,7 @@ class Registration(object):
         self.path_logs = 'logs'
         
         # links of pages from web
-        self.links_of_pages = self.links_of_pages()
+        self.links_of_pages_latest = self.links_of_pages()
         
         # Call Parser Class
         self.parser = Parser_Registration()
@@ -68,11 +68,11 @@ class Registration(object):
         else:
             self.driver = driver 
         
-        self.links_of_publications_existing = None
-        self.links_of_registrations_existing = None
-        self.contents_of_registratons_existing = None
+        self.links_of_publications_existing = pd.DataFrame()
+        self.links_of_registrations_existing = pd.DataFrame()
+        self.contents_of_registratons_existing = pd.DataFrame()
         if os.path.isfile(self.path_records + '//' + 'links_of_publications.json'):
-           self.links_of_registrations_existing = pd.read_json(
+           self.links_of_publications_existing = pd.read_json(
                self.path_records + '//' + 'links_of_publications.json')       
         if os.path.isfile(self.path_records + '//' + 'links_of_registrations.json'):
             self.links_of_registrations_existing = pd.read_json(
@@ -195,7 +195,7 @@ class Registration(object):
 
         """
         if links_of_pages == 'default':
-            links_of_pages = self.links_of_pages
+            links_of_pages = self.links_of_pages_latest
         elif links_of_pages == 'empty':
             links_of_pages = pd.DataFrame()
         links_of_publications = []
@@ -224,22 +224,21 @@ class Registration(object):
         This functions finds the links to new publications
         @param update_records: bool, whether to updated the saved records
         @return records_new: pd.DataFrame
-        """
-       
-        if os.path.isfile(self.path_records + '//' + filename + '.csv'):
-            records_existing = pd.read_csv(self.path_records + '//' + filename + '.csv', encoding='utf-8-sig')
-        else:
-            records_existing = self.links_of_publications(links_of_pages = 'empty')
-            
-        # 网上获取最新
-        records_latest = self.links_of_publications()
-        records_new = records_latest[~records_latest['公示批次链接'].isin(records_existing['公示批次链接'])]
+        """       
+           
+        # Get latest links of publication from NRTA
+        links_of_publications_latest = self.links_of_publications()
+        
+        # Check with existing links for new link(s) of publication(s)
+        links_of_publications_new = links_of_publications_latest[
+            ~links_of_publications_latest['公示批次链接'].isin(
+                self.links_of_publications_existing['公示批次链接'])]
 
         if update_records:
-            self.save_records(records_latest, filename, backup=True)
-            print(filename + '.csv updated.')
+            self.save_records(links_of_publications_latest, filename, backup=True)
+            print(filename + '.json updated.')
         
-        return records_new
+        return links_of_publications_new
 
 ##########
     def links_of_registrations(self, 
@@ -520,20 +519,28 @@ class Registration(object):
         """
         
         # Import Existing Records:
-        if os.path.isfile(self.path_records + '//' + fn_links_of_publications + '.csv'):
-            links_of_publications = pd.read_csv(self.path_records + '//' + fn_links_of_publications + '.csv', encoding='utf-8-sig')
+        if os.path.isfile(
+                self.path_records + '//' + fn_links_of_publications + '.json'):
+            links_of_publications = pd.read_json(
+                self.path_records + '//' + fn_links_of_publications + '.json')
         else:
             links_of_publications = self.links_of_publications('empty')
         
-        if os.path.isfile(self.path_records + '//' + fn_links_of_registrations + '.csv'):
-            links_of_registrations = pd.read_csv(self.path_records + '//' + fn_links_of_registrations + '.csv', encoding='utf-8-sig')
+        if os.path.isfile(
+                self.path_records + '//' + fn_links_of_registrations + '.json'):
+            links_of_registrations = pd.read_json(
+                self.path_records + '//' + fn_links_of_registrations + '.json')
         else:
-            links_of_registrations = self.links_of_registrations(links_of_publications=pd.DataFrame())
+            links_of_registrations = self.links_of_registrations(
+                links_of_publications=pd.DataFrame())
             
-        if os.path.isfile(self.path_records + '//' + fn_contents_of_registrations + '.csv'):
-            contents_of_registrations = pd.read_csv(self.path_records + '//' + fn_contents_of_registrations + '.csv', encoding='utf-8-sig')
+        if os.path.isfile(
+                self.path_records + '//' + fn_contents_of_registrations + '.csv'):
+            contents_of_registrations = pd.read_json(
+                self.path_records + '//' + fn_contents_of_registrations + '.json', encoding='utf-8-sig')
         else:
-            contents_of_registrations = self.contents_of_registrations(links_of_registrations = pd.DataFrame())
+            contents_of_registrations = self.contents_of_registrations(
+                links_of_registrations = pd.DataFrame())
         
         links_of_publications_latest = self.links_of_publications()
 
@@ -601,7 +608,8 @@ class Registration(object):
             self.save_records(links_of_publications_latest, fn_links_of_publications)
             self.save_records(links_of_registrations_updated, fn_links_of_registrations)       
             self.save_records(contents_of_registrations_updated, fn_contents_of_registrations)
-            print('Records from ' + str(len(links_of_publications_to_update)) + ' publication(s) are added to contents of registrations.')
+            print('Records from ' + str(len(links_of_publications_to_update))
+                  + ' publication(s) are added to contents of registrations.')
             
         return contents_of_registrations_updated
 
