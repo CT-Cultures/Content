@@ -11,9 +11,6 @@ from Record_Registration import Registration
 
 dy_reg = Registration()
 #%%
-contents_of_registrations_existing = dy_reg.contents_of_registrations_existing
+contents_of_registrations = dy_reg.update_records(how='comprehensive', 
+                                                          save_update=True)
 
-#%%
-links_of_new_publications = dy_reg.links_of_new_publications()
-#%%
-links_of_publications_exisiting_from_contents = contents_of_registrations_existing['公示批次链接'].unique()

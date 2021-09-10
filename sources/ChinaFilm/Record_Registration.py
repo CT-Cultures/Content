@@ -552,8 +552,8 @@ class Registration(object):
             self.save_records(contents_of_registrations_latest, 
                               fn_contents_of_registrations)
             
-            n_new_records = contents_of_registrations_latest.shape[0] - \
-                self.contents_of_registrations_existing[0]
+            n_new_records = (contents_of_registrations_latest.shape[0] -
+                self.contents_of_registrations_existing.shape[0])
             print('Records from ' + str(n_new_records)
                   + ' publication(s) are added to contents of registrations.')
             
