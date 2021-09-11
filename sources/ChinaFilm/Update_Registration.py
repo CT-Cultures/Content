@@ -14,3 +14,6 @@ dy_reg = Registration()
 contents_of_registrations = dy_reg.update_records(how='comprehensive', 
                                                           save_update=True)
 
+#%%
+contents_of_registrations = dy_reg.contents_of_registrations_existing
+links_of_registrations_existing = dy_reg.links_of_registrations_existing

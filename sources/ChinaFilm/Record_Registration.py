@@ -198,12 +198,15 @@ class Registration(object):
                 html = x.read().decode('utf-8')   # site has problem decoding
             bsObj = BeautifulSoup(html, 'html5lib')
             for item in bsObj.find_all('a', class_="m2r_a"):
-                links_of_publications += [[self.url_base + item.get("href"), str(item.text)[1:]]]
+                links_of_publications += [[self.url_base + item.get("href"), 
+                                           str(item.text)[1:]
+                                         ]]
         if len(links_of_publications) != 0:
             links_of_publications = pd.DataFrame(links_of_publications)
             links_of_publications.columns = ['公示批次链接','名称缩减']
         else:
-            links_of_publications = pd.DataFrame(columns = ['公示批次链接','名称缩减'])
+            links_of_publications = pd.DataFrame(columns = 
+                                                 ['公示批次链接','名称缩减'])
            
         if savefile:
             self.save_records(links_of_publications, filename, backup=True)
@@ -387,11 +390,17 @@ class Registration(object):
                 unprocessed_links.append[link]
 
         if len(contents_of_registrations) != 0:
-            contents_of_registrations = pd.concat([contents_of_registrations[i] for i in range(len(contents_of_registrations))], ignore_index=True)
-            contents_of_registrations['梗概'] = contents_of_registrations['梗概'].apply(lambda x: x.lstrip('梗概：'))
+            contents_of_registrations = pd.concat([contents_of_registrations[i] 
+                for i in range(len(contents_of_registrations))], 
+                    ignore_index=True)
+            contents_of_registrations['梗概'] = \
+                contents_of_registrations['梗概'].apply(
+                    lambda x: x.lstrip('梗概：'))
         else:
-            contents_of_registrations = pd.DataFrame(columns = ['备案立项号', '片名', '备案单位', '编剧', '备案结果', '备案地', '梗概', '公示日期', '公示批次名称',
-       '备案详细页链接', '公示批次链接'])
+            contents_of_registrations = pd.DataFrame(columns = [
+                '备案立项号', '片名', '备案单位', '编剧', '备案结果', '备案地', 
+                '梗概', '公示日期', '公示批次名称',
+                '备案详细页链接', '公示批次链接'])
         
         if unprocessed_links:
             unprocessed_links = pd.concat([unprocessed_links[i] for i in range(len(unprocessed_links))], ignore_index=True)
@@ -562,9 +571,9 @@ class Registration(object):
 
 ##########    
     def Refined_Records(self, 
-        fn_raw: str = "contents_of_registrations",
+        df_raw: pd.DataFrame =None,
         fn_refined: str = 'contents_of_registrations_refined',
-        update_first: bool = True,
+        update_first: bool = False,
         save_refined: bool = False
         ) -> pd.DataFrame:
         """
@@ -587,57 +596,73 @@ class Registration(object):
             DESCRIPTION.
 
         """
-        if update_first:
+        if not df_raw.empty:
+            contents_of_registrations_raw = df_raw.copy()
+        elif update_first:
             contents_of_registrations_raw = self.update_records()
         
-        elif os.path.isfile(self.path_records + '//' + fn_raw + '.json'):
-            contents_of_registrations_raw = pd.read_json(
-                self.path_records + '//' + fn_raw + '.json')
         else:
             contents_of_registrations_raw = self.contents_of_registrations(pd.DataFrame())
-
+            
         #======== REFININIG RECORDS
         contents_of_registrations_refined = contents_of_registrations_raw.copy()
+        contents_of_registrations_refined = \
+            contents_of_registrations_refined.dropna()
         
         # Convert to datetiime
-        contents_of_registrations_refined['公示日期'] = pd.to_datetime(contents_of_registrations_refined['公示日期'])
+        contents_of_registrations_refined['公示日期'] = \
+            pd.to_datetime(contents_of_registrations_refined['公示日期'])
         
         # Extract Publish Year
-        contents_of_registrations_refined['公示年'] = contents_of_registrations_refined['公示日期'].apply(lambda x: x.year)
+        contents_of_registrations_refined['公示年'] = \
+            contents_of_registrations_refined['公示日期'].apply(
+                lambda x: x.year)
 
         # Corrrect Publication Title Errors
-        contents_of_registrations_refined['公示批次名称'] = contents_of_registrations_raw.agg(
-            self.parser.correct_publication_title_errors, axis=1)
+        contents_of_registrations_refined['公示批次名称'] = \
+            contents_of_registrations_raw.agg(
+                self.parser.correct_publication_title_errors, axis=1)
                
         # Drop duplicates after corrections
         contents_of_registrations_refined.drop_duplicates(inplace=True)
 
         # Extract parsed Pubtitle
-        contents_of_registrations_refined['公示批次起始'] = contents_of_registrations_refined['公示批次名称'].agg(self.parser.PubTitle)
-        contents_of_registrations_refined['公示批次起始'] = contents_of_registrations_refined['公示批次起始'].apply(lambda x: tuple(x))
+        contents_of_registrations_refined['公示批次起始'] = \
+            contents_of_registrations_refined['公示批次名称'].agg(
+                self.parser.PubTitle)
+        contents_of_registrations_refined['公示批次起始'] = \
+            contents_of_registrations_refined['公示批次起始'].apply(
+                lambda x: tuple(x))
         
         # Parse Film Type
-        contents_of_registrations_refined['类型'] = contents_of_registrations_raw['备案立项号'].agg(
-            self.parser.RegType)
+        contents_of_registrations_refined['类型'] = \
+            contents_of_registrations_raw['备案立项号'].agg(
+                self.parser.RegType)
         
         # Extract Reg Submit Year
-        contents_of_registrations_refined['备案申请年份'] = contents_of_registrations_raw['备案立项号'].agg(
-            self.parser.RegSubmitYear)
+        contents_of_registrations_refined['备案申请年份'] = \
+            contents_of_registrations_raw['备案立项号'].agg(
+                self.parser.RegSubmitYear)
         
         # Extract Reg Sequence Number
-        contents_of_registrations_refined['备案立项年度顺序号'] = contents_of_registrations_raw['备案立项号'].agg(
-            self.parser.RegSequenceNo)
+        contents_of_registrations_refined['备案立项年度顺序号'] = \
+            contents_of_registrations_raw['备案立项号'].agg(
+                self.parser.RegSequenceNo)
            
         # Correct pre_2011 备案立项年度顺序号 errors
-        contents_of_registrations_refined['备案立项年度顺序号'] = contents_of_registrations_refined.agg(
-            self.parser.correct_pre_2011_error, axis=1)
+        contents_of_registrations_refined['备案立项年度顺序号'] = \
+            contents_of_registrations_refined.agg(
+                self.parser.correct_pre_2011_error, axis=1)
         
         # Extract PubIssue Date Range
-        contents_of_registrations_refined['公示覆盖期间'] = self.parser.DateRange(contents_of_registrations_raw['公示批次名称'])
+        contents_of_registrations_refined['公示覆盖期间'] = \
+            self.parser.DateRange(contents_of_registrations_raw['公示批次名称'])
         
     
         # Calculate Number of days covered in Issue
-        contents_of_registrations_refined['公示覆盖天数'] = contents_of_registrations_refined['公示覆盖期间'].apply(lambda x: len(x))
+        contents_of_registrations_refined['公示覆盖天数'] = \
+            contents_of_registrations_refined['公示覆盖期间'].apply(
+                lambda x: len(x))
         
         # Convert dtypes
         contents_of_registrations_refined = contents_of_registrations_refined.convert_dtypes()
@@ -833,7 +858,7 @@ class Parser_Registration(object):
         
         if reg_sequence_no:
             reg_sequence_no = reg_sequence_no.group()
-            reg_sequence_no = reg_sequence_no.lstrip('[第\]）]').rstrip('[号]')
+            reg_sequence_no = reg_sequence_no.lstrip('[第\]）〕]').rstrip('[号]')
             reg_sequence_no = int(reg_sequence_no)
         else:
             reg_sequence_no = np.nan            
@@ -853,6 +878,7 @@ class Parser_Registration(object):
         -------
         list[yr:str, start_m:str, start_mq: str, end_m: str, end_mq: str]
             DESCRIPTION.
+        国家电影局关于2021年7月全国电影剧本（梗概）  备案、立项公示的通知-电影备案立项公示-国家电影局
 
         """
             
@@ -918,6 +944,7 @@ class Parser_Registration(object):
             DESCRIPTION.
     
         """
+        pubtitle = pubtitle.sort_index()
         pubtitle_unique = pubtitle.drop_duplicates().rename('本批次周期')
         pubtitle_unique = pubtitle_unique.agg(self.PubTitle)
         pubtitle_unique = pubtitle_unique.to_frame()
@@ -960,7 +987,7 @@ class Parser_Registration(object):
         dt_range = pubtitle_unique.agg(gen_dr, axis=1) #Series
         dt_range.rename('公示覆盖期间', inplace=True)
         
-        df = pd.concat([pubtitle, dt_range], axis=1)
+        df = pd.concat([pubtitle, dt_range], ignore_index=False, axis=1)
         df['公示覆盖期间'].fillna(method='ffill', inplace=True)
         
         return df['公示覆盖期间']        
