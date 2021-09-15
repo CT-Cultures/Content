@@ -26,6 +26,6 @@ This Project creates a set of tools for collecting and updating Entertainment Co
     - extractive title prediction
     - TF-IDF keyword extraction
   - WIP
-    - Story Semantic Similarity Comparision
+    - Story Progression Similarity Comparison
 
 ** Screenplay is no longer part of Content module, it is now a standalone repository. Screenplay is used for auto screenplay formatting, translation and synopsis generation.
