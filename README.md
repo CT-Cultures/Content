@@ -1,15 +1,26 @@
-# CT Land Smart Content 
+# Content
 
-This Project creats a set of tools for collecting, maintaining and analyzing movie, televisions production database.
+This Project creates a set of tools for collecting and updating Entertainment Content Data, and periodically generate articles for downstream publication on social networks.
 
-(1) Data Sources
-  - China Film
-  -     Registration Records
-  -     Release Records
+(1) Currently supported Data Sources
+  - ChinaFilm, including film registration and release permit records.
+  - NRTA, including TV registration records, will gradually include
+  
+  Sample Usage:[]
 
-(2) Tools
-- Articles
--   Generate a docx for each film registration publication， with highlights on film of interest.
--   Generate a docx for each film release publication, with highlights on project age, title changes and registered organization change.
-- Screenplay.
--   Create a set of tools to clean, format, translate and analyze film screenplays.
+(2) Article Generation Tools
+  - Film Registrations Overview, 
+  -Generate a docx for each film release publication, with highlights on project age, title changes and registered organization change.
+
+
+(3) Content Analysis Tools
+  - Genre classification from short synopsis
+  - Time Period classification from short synopsis
+  - NER
+    - Character Recognition from synopsis
+  - Key phrase/word idenfication using 
+    - abstractive title prediction
+    - extractive title prediction
+    - TF-IDF keyword extraction
+  - WIP
+    - Story Semantic Similarity Comparision
