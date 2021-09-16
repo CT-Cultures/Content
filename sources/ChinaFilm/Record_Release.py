@@ -49,6 +49,16 @@ class Release(object):
         
         # links of pages from web
         self.links_of_pages = self.links_of_pages()
+        
+        self.links_of_publications_existing = pd.DataFrame()
+        self.contents_of_releases_existing = pd.DataFrame()
+        if os.path.isfile(self.path_records + '//' + 'links_of_publications_releases.json'):
+           self.links_of_publications_existing = pd.read_json(
+               self.path_records + '//' + 'links_of_publications_releases.json')       
+
+        if os.path.isfile(self.path_records + '//' + 'contents_of_releases.json'):
+            self.contents_of_releases_existing = pd.read_json(
+                self.path_records + '//' + 'contents_of_releases.json')
     
     ##########        
     def save_records(self,
@@ -59,14 +69,17 @@ class Release(object):
         This functions saves pd.DataFrame to csv files with backup option
         """
         dt = datetime.datetime.now()
-        appendix_dt = '_' + str(dt.strftime("%Y%m%d")) + '_'+ str(dt.strftime("%H%M"))      
-        path_file = self.path_records + '/' + filename + '.csv'
-        path_file_bk = self.path_records + '/backup/' + filename + appendix_dt + '.csv'
+        appendix_dt = '_' + str(dt.strftime("%Y%m%d")) \
+            + '_'+ str(dt.strftime("%H%M"))      
+        path_file = self.path_records + '/' + filename + '.json'
+        path_file_bk = self.path_records + '/backup/' \
+            + filename + appendix_dt + '.json'
         if backup:
             if os.path.isfile(path_file):
                 os.rename(path_file, path_file_bk)
-        records.to_csv(path_file, encoding='utf-8-sig', index=False)
-        print('file saved to: ' + filename + '.csv')
+        records.to_json(path_file)
+        print('{} records saved to {}.'.format(
+            records.shape[0], path_file))
     
     ##########  
     
