@@ -68,18 +68,26 @@ class Registration(object):
         else:
             self.driver = driver 
         
-        self.links_of_publications_existing = pd.DataFrame()
-        self.links_of_registrations_existing = pd.DataFrame()
-        self.contents_of_registratons_existing = pd.DataFrame()
+        
+        
+       
         if os.path.isfile(self.path_records + '//' + 'links_of_publications.json'):
            self.links_of_publications_existing = pd.read_json(
-               self.path_records + '//' + 'links_of_publications.json')       
+               self.path_records + '//' + 'links_of_publications.json')
+        else:
+            self.links_of_publications_existing = pd.DataFrame()
+         
         if os.path.isfile(self.path_records + '//' + 'links_of_registrations.json'):
             self.links_of_registrations_existing = pd.read_json(
                 self.path_records + '//' + 'links_of_registrations.json')
+        else:
+            self.links_of_registrations_existing = pd.DataFrame()
+            
         if os.path.isfile(self.path_records + '//' + 'contents_of_registrations.json'):
             self.contents_of_registrations_existing = pd.read_json(
                 self.path_records + '//' + 'contents_of_registrations.json')
+        else:
+            self.contents_of_registratons_existing = pd.DataFrame()
         
 ##########        
     def save_records(self,
@@ -87,7 +95,7 @@ class Registration(object):
                      filename: str, 
                      backup=True) -> None:
         """
-        This functions saves pd.DataFrame to csv files with backup option
+        This functions saves pd.DataFrame to json files with backup option
         """
         dt = datetime.datetime.now()
         appendix_dt = '_' + str(dt.strftime("%Y%m%d")) + '_'+ str(dt.strftime("%H%M"))      
@@ -100,23 +108,6 @@ class Registration(object):
         print('file saved to: ' + filename + '.json with a total of ', 
               records.shape[0], ' records.')
         
-##########
-    def append_records(self,
-                     records: pd.DataFrame, 
-                     filename: str, 
-                     backup: bool = False) -> None:
-        """
-        This functions saves pd.DataFrame to csv files with backup option
-        """
-        dt = datetime.datetime.now()
-        appendix_dt = '_' + str(dt.strftime("%Y%m%d")) + '_'+ str(dt.strftime("%H%M"))      
-        path_file = self.path_records + '/' + filename + '.csv'
-        path_file_bk = self.path_records + '/backup/' + filename + appendix_dt + '.csv'
-        if backup:
-            if os.path.isfile(path_file):
-                os.rename(path_file, path_file_bk)
-        records.to_csv(path_file, mode='a', header=(not os.path.exists(path_file)), encoding='utf-8-sig', index=False)
-        print(records.shape[0], ' records appended to: ' + filename + '.csv')
 
 ##########
     def remove_bom_utf8(self, x: str)-> str:
@@ -490,7 +481,7 @@ class Registration(object):
         save_update: bool = False
         ) -> pd.DataFrame:
         """
-        This functions updates the records to latest.
+        
 
         Parameters
         ----------
@@ -500,71 +491,75 @@ class Registration(object):
             DESCRIPTION. The default is "links_of_registrations".
         fn_contents_of_registrations : str, optional
             DESCRIPTION. The default is "contents_of_registrations".
+        how : str, optional
+            DESCRIPTION. The default is 'quick'.
         save_update : bool, optional
             DESCRIPTION. The default is False.
 
         Returns
         -------
-        contents_of_registrations_updated : TYPE
+        contents_of_registrations_latest : TYPE
             DESCRIPTION.
 
         """
-        # Compares existing links of registrations in Content df with 
-        # latest links in links of registrations df
+
+        links_of_publications_latest = self.links_of_publications()
+        
+        if how == 'quick':
+            
+            publications_unique = self.contents_of_registrations_existing[
+                    '公示批次链接'].unique()    
+
+            links_of_publications_new = links_of_publications_latest[
+                ~links_of_publications_latest['公示批次链接'].isin(
+                    publications_unique)
+                ]
+            
+            links_of_registrations_latest = None
+           
+            links_of_registrations_new = self.links_of_registrations(
+                links_of_publications_new)
+            
+                 
         if how == 'comprehensive':
-            # Get latest links of publication from NRTA
-            links_of_publications_latest = self.links_of_publications()
+            
             links_of_registrations_latest = self.links_of_registrations(
                 links_of_publications_latest)
             
             links_of_registrations_new = links_of_registrations_latest[
                 ~links_of_registrations_latest['备案详细页链接'].isin(
                     self.contents_of_registrations_existing['备案详细页链接'])
-                ]
-        
-        # Compares existing links of publications in Content df with 
-        # latest links in links of publications df
-        if how == 'quick':
-            
-            links_of_publications_latest = self.links_of_publications()
-            links_of_publications_new = links_of_publications_latest[
-                ~links_of_publications_latest['公示批次链接'].isin(
-                    self.contents_of_registrations_existing['公示批次链接'])
-                ]
-            links_of_registrations_new = self.links_of_registrations(
-                links_of_publications_new)
-         
-        # Concat existing contents with new contents
+            ]
+               
         contents_of_registrations_new = self.contents_of_registrations(
             links_of_registrations_new)
         
+        
         contents_of_registrations_latest = pd.concat(
-            [self.contents_of_registrations_existing, contents_of_registrations_new],
-            ignore_index=True)
+            [contents_of_registrations_new, self.contents_of_registrations_existing],
+            ignore_index=True
+            )
         
-        contents_of_registrations_latest.drop_duplicates(inplace=True)
+        content_of_registrations_latest = \
+            contents_of_registrations_latest.sort_values(
+                '公示日期').reset_index(drop=True)
         
-        contents_of_registrations_latest = contents_of_registrations_latest.sort_values(
-            '公示日期', ascending=True).reset_index(drop=True)
+        content_of_registrations_latest = \
+            content_of_registrations_latest.sort_values(
+                '公示日期', ascending=False)
         
-        contents_of_registrations_latest = contents_of_registrations_latest.sort_values(
-            '公示日期', ascending=False)
-            
-        
-        if save_update:        
-        # Save Updated Records
-            self.save_records(links_of_publications_latest, 
+        if save_update==True:
+            self.save_records(links_of_publications_latest,
                               fn_links_of_publications)
-            if 'links_of_registrations_latest' in locals():
-                self.save_records(links_of_registrations_latest, 
-                                  fn_links_of_registrations)       
-            self.save_records(contents_of_registrations_latest, 
-                              fn_contents_of_registrations)
             
-            n_new_records = (contents_of_registrations_latest.shape[0] -
-                self.contents_of_registrations_existing.shape[0])
-            print('Records from ' + str(n_new_records)
-                  + ' publication(s) are added to contents of registrations.')
+            if links_of_registrations_latest:
+                self.save_records(links_of_registrations_latest,
+                                  'links_of_registrations'
+                                  )
+            
+            self.save_records(contents_of_registrations_latest,
+                              fn_contents_of_registrations
+                              )
             
         return  contents_of_registrations_latest
 
