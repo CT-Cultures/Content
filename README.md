@@ -1,6 +1,6 @@
 # Content
 
-This Project creates a set of tools for collecting and updating Entertainment Content Data, and periodically generate articles for downstream publications on social networks. These tools are designed for collaborating colleagues with minimal programming knowledge.
+This Project tracks film, TV and Web Series Registration and Release Records.
 
 (1) Currently supported Data Sources
   - ChinaFilm, including film registration and release permit records.
