@@ -11,12 +11,8 @@ This Project creates a set of tools for collecting and updating Entertainment Co
                 python run NRTA/update_records.py
   Alternatively, One can use the corresponding jupyter notebooks to update and review records.
 
-(2) Article Generation Tools
-  - Film Registrations Overview, 
-  -Generate a docx for each film release publication, with highlights on project age, title changes and registered organization change.
 
-
-(3) Content Analysis Tools
+(2) Content Analysis Tools
   - Genre classification from short synopsis
   - Time Period classification from short synopsis
   - NER
@@ -28,4 +24,5 @@ This Project creates a set of tools for collecting and updating Entertainment Co
   - WIP
     - Story Progression Similarity Comparison
 
-** Screenplay is no longer part of Content module, it is now a standalone repository. Screenplay is used for auto screenplay formatting, translation and synopsis generation.
+** Screenplay is no longer part of the Content module, it is now a standalone repository. Screenplay is used for auto screenplay formatting, translation and synopsis generation.
+** Article is no longer part of the Content module, it is now a standalone repository for generating data overview articles.
