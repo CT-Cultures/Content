@@ -15,8 +15,8 @@ import re
 import time
 
 # Load from Local
-from IO_Storage import File
-from CrawlCleaner import ChineseCleaner
+#from IO_Storage import File
+#from CrawlCleaner import ChineseCleaner
 #%%
 class Record(object):
     
