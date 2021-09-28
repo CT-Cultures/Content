@@ -2,6 +2,6 @@ tools/models
 sources/ChinaFilm/records/backup
 sources/NRTA/records/backup
 sources/NRTA/Announcements
-tools/screenplay
+sources/maoyan/records/backup
 *.pyc
 git.ipynb
