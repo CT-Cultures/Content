@@ -1,14 +1,19 @@
 # Content
 
-This Project tracks film, TV and Web Series Registration and Release Records.
+##This Project tracks film, TV and Web Series Registration and Release Records.
 
-(1) Currently supported Data Sources
-  - ChinaFilm, including film registration and release permit records.
-  - NRTA, including TV registration records, will gradually include
-  
-  Sample Usage: python rum ChinaFilm/update_registrations.py
+##(1) Data Sources include:
+  - ChinaFilm 中国国家电影局- film registration, film release permit
+  - ###Sample Usage: python rum ChinaFilm/update_registrations.py
                 python run ChinaFilm/update_releases.py
                 python run NRTA/update_records.py
+  - NRTA 中国国家广电总局 TV registration
+  - IMDB
+  - Douban 豆瓣
+  - Maoyan 猫眼
+  - Endata 艺恩智库
+  - Taopiaopiao 淘票票
+
   Alternatively, One can use the corresponding jupyter notebooks to update and review records.
 
 
