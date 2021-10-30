@@ -3,5 +3,6 @@ sources/ChinaFilm/records/backup
 sources/NRTA/records/backup
 sources/NRTA/Announcements
 sources/maoyan/records/backup
+sources/douban/wip
 *.pyc
 git.ipynb
