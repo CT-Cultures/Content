@@ -17,12 +17,27 @@ from bs4 import BeautifulSoup
 #import lxml
 import re
 import pandas as pd
+<<<<<<< HEAD
 #%%
 class Maoyan(object):
 ##########   
     def __init__(self):
         if not self:
             raise ValueError
+=======
+#%% Import Common Libraries
+os.chdir('../Common')
+from utils import DB
+os.chdir('../imdb')
+
+#%% Define MAOYAN Class
+class MAOYAN(DB):
+##########   
+    def __init__(self):
+        
+        super(MAOYAN, self).__init__()
+        
+>>>>>>> fe9bac6303071d5862f0f30969f5ef0ea1af8a55
         self.mobile_emulation = { 
             "deviceMetrics": { "width": 360, "height": 640, "pixelRatio": 3.0 },
             "userAgent": "Mozilla/5.0 (Linux; Android 4.2.1; en-us; Nexus 5 Build/JOP40D) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Mobile Safari/535.19" 
@@ -59,6 +74,7 @@ class Maoyan(object):
         print('file saved to: ' + filename + '.json with a total of ', 
               records.shape[0], ' records.')
 
+<<<<<<< HEAD
 ##########         
     def save_search(self, df_search: pd.DataFrame) -> None:
         dt = datetime.datetime.now()
@@ -68,6 +84,8 @@ class Maoyan(object):
         print('search result saved to: {}'.format(path_file),
               ' with {} records'.format(df_search.shape[0])
         )
+=======
+>>>>>>> fe9bac6303071d5862f0f30969f5ef0ea1af8a55
 ##########      
     def update_records(self, df_search: pd.DataFrame):
         """
@@ -92,9 +110,15 @@ class Maoyan(object):
             self.records_maoyan = pd.DataFrame(
                 columns=['片名', 'fid', '主演', '上映日期'])
         
+<<<<<<< HEAD
         df_new = df_search[~df_search['fid'].isin(self.records_maoyan['fid'])]
 
         df_latest = pd.concat([self.records_maoyan, df_new], ignore_index=True)
+=======
+        df_old = self.record_maoyan[~self.record_maoyan['fid'].isin(df_search['fid'])]
+
+        df_latest = pd.concat([df_search, df_old], ignore_index=True)
+>>>>>>> fe9bac6303071d5862f0f30969f5ef0ea1af8a55
         
         """ WIP, update release date with each new search
         df_existed = df_search[df_search['fid'].isin(self.records_maoyan['fid'])]
@@ -118,7 +142,11 @@ class Maoyan(object):
         self.landing_page = self.driver.page_source
         return self.landing_page
 ##########       
+<<<<<<< HEAD
     def on_screen(self):
+=======
+    def get_on_screen(self):
+>>>>>>> fe9bac6303071d5862f0f30969f5ef0ea1af8a55
         if not self.landing_page:
             self.landing_page = self.get_app_landing_page()
         soup = BeautifulSoup(self.landing_page, features='lxml')
@@ -137,7 +165,12 @@ class Maoyan(object):
             if actor: d['主演'] = actor.text.lstrip('主演: ').split(',')
             else: d['主演'] = None
                 
+<<<<<<< HEAD
             dt_release = f.find('div', class_=re.compile('show-info line-ellipsis'))
+=======
+            dt_release = f.find('div', class_=re.compile(
+                'show-info line-ellipsis'))
+>>>>>>> fe9bac6303071d5862f0f30969f5ef0ea1af8a55
             if dt_release: d['上映日期'] = dt_release.text.split(' ')[0]
             else: d['上映日期'] = None
             
@@ -152,7 +185,11 @@ class Maoyan(object):
             ls.append(d)
             
         df = pd.DataFrame.from_dict(ls)
+<<<<<<< HEAD
         self.save_search(df)
+=======
+        DB.save_search(df, suffix='os')
+>>>>>>> fe9bac6303071d5862f0f30969f5ef0ea1af8a55
         self.update_records(df)
         
         return df
@@ -166,10 +203,18 @@ class Maoyan(object):
 ##########      
     def search_for_content(self, str_item):
         page = self.search(str_item)
+<<<<<<< HEAD
         content = self.parse_content(page)
         return content
     
     def parse_content(self, page):
+=======
+        content = MAOYAN.parse_content(page)
+        return content
+    
+    @staticmethod
+    def parse_content(page):
+>>>>>>> fe9bac6303071d5862f0f30969f5ef0ea1af8a55
         bsObj = BeautifulSoup(page, 'html5lib')
         content = bsObj.find(attrs={"name": "description"})
         if content != None:
