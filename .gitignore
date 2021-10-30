@@ -4,5 +4,6 @@ sources/NRTA/records/backup
 sources/NRTA/Announcements
 sources/maoyan/records/backup
 sources/douban/wip
+sources/maoyan/searches
 *.pyc
 git.ipynb
