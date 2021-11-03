@@ -21,7 +21,7 @@ import pandas as pd
 #%% Import Common Libraries
 os.chdir('../Common')
 from utils import DB
-os.chdir('../imdb')
+os.chdir('../maoyan')
 
 #%% Define MAOYAN Class
 class MAOYAN(DB):
@@ -38,7 +38,7 @@ class MAOYAN(DB):
         self.chromeoptions.add_argument('--no-sandbox')
         self.chromeoptions.add_argument('--disable-dev-shm-usage')
         self.chromeoptions.add_argument('--save-page-as-mhtml')
-        self.chromeoptions.add_experimental_option("mobileEmulation", self.mobile_emulation)
+        #self.chromeoptions.add_experimental_option("mobileEmulation", self.mobile_emulation)
         self.driver = webdriver.Chrome(options = self.chromeoptions)
         self.url_base = 'https://m.maoyan.com'
         self.landing_page = None
@@ -102,7 +102,7 @@ class MAOYAN(DB):
 
         df_latest = pd.concat([self.records_maoyan, df_new], ignore_index=True)
 
-        df_old = self.record_maoyan[~self.record_maoyan['fid'].isin(df_search['fid'])]
+        df_old = self.records_maoyan[~self.records_maoyan['fid'].isin(df_search['fid'])]
 
         df_latest = pd.concat([df_search, df_old], ignore_index=True)
 
@@ -127,10 +127,14 @@ class MAOYAN(DB):
         WebDriverWait(self.driver, 5)
         self.landing_page = self.driver.page_source
         return self.landing_page
-##########       
+    
+    def get_page_source(self, url, wait=10):
+        self.driver.get(url)
+        WebDriverWait(self.driver, wait)
+        page = self.driver.page_source
+        return page
+    
     def on_screen(self):
-
-    def get_on_screen(self):
         if not self.landing_page:
             self.landing_page = self.get_app_landing_page()
         soup = BeautifulSoup(self.landing_page, features='lxml')
@@ -175,23 +179,39 @@ class MAOYAN(DB):
         self.update_records(df)
         
         return df
+##########
+    def in_theater(self):
+        url = 'https://maoyan.com/films?showType=1'
+    
+    def queue_theater(self):
+        url = 'https://maoyan.com/films?showType=2'
+        page = self.get_page_source(url)
+        soup = BeautifulSoup(page)
+        mpanel = soup.body.find('div', class_='movies-panel')
+        links_page = []
+        for link in mpanel.find_all('a', class_=re.compile('page_')):
+            if link['href'] == "javascript:void(0);":
+                links_page.append(url)
+            else:
+                links_page.append(url + link['href'])
+        links_page = list(set(links_page))
+        
 ##########       
     def search(self, str_item):
-        url_search = self.url_base + '/' + str_item        
+        url_search = 'https://maoyan.com/query?kw=' + str_item        
         self.driver.get(url_search)
-        self.driver.implicitly_wait(2)
+        self.driver.implicitly_wait(5)
         page = self.driver.page_source
         return page    
 ##########      
     def search_for_content(self, str_item):
         page = self.search(str_item)
-<<<<<<< HEAD
         content = self.parse_content(page)
         return content
     
-    def parse_content(self, page):
-=======
-        content = MAOYAN.parse_content(page)
+    def search_for_score(self, str_item):
+        page = self.search(str_item)
+        content = self.parse_content(page)
         return content
     
     @staticmethod
