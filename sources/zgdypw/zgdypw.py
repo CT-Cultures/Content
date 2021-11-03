@@ -209,12 +209,10 @@ class ZGDYPW(DB):
             
             publications_unique = \
                 contents_of_releases_existing['publink'].unique()    
-            links_of_publications_new = df_links_of_releases_latest[
+            links_of_releases_new = df_links_of_releases_latest[
                 ~df_links_of_releases_latest['publink'].isin(publications_unique)
             ]  
             links_of_releases_latest = None
-            links_of_releases_new = self.links_of_releases(
-                links_of_publications_new['publink'].tolist())
             contents_of_releases_new = self.contents_of_releases(
                 links_of_releases_new)
             
