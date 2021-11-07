@@ -16,6 +16,25 @@ zgd = ZGDYPW()
 
 #%% Update Contents of Releases
 contents_of_releases = zgd.update_contents_of_releases(
-    how='quick', save=True)
+    how='comprehensive', save=True)
 #%%
 
+links_of_marketpage_latest = zgd.links_of_marketpage()
+links_of_releases_latest = zgd.links_of_releases(
+    links_of_marketpage_latest) # List[str]
+
+df_links_of_releases_latest = \
+    pd.Series(links_of_releases_latest).rename('publink').to_frame()
+
+contents_of_releases_existing = pd.read_json(
+    zgd.path_records + '/' + "contents_of_releases" + '.json')
+
+publications_unique = \
+    contents_of_releases_existing['publink'].unique()
+    
+links_of_publications_new = df_links_of_releases_latest[
+    ~df_links_of_releases_latest['publink'].isin(publications_unique)
+]
+
+links_of_releases_new = zgd.links_of_releases(
+    links_of_publications_new['publink'].tolist())

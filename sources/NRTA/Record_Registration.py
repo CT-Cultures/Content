@@ -92,6 +92,7 @@ class Registration(object):
             if os.path.isfile(path_file):
                 os.rename(path_file, path_file_bk)
         records.to_json(path_file)
+        print(records.shape)
         print('file saved to: ' + filename + '.json')
     
     ##########  
