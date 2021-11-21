@@ -259,8 +259,8 @@ class Registration(object):
         if len(ls_df) != 0:
             links_of_registrations = pd.concat([ls_df[i] for i in range(len(ls_df))], ignore_index=True)
         else:
-            links_of_registrations = pd.DataFrame()
-            links_of_registrations.columns = ['地区', '剧名', '题材', '制作机构', '备案链接', '公示名称', '公示批次链接']
+            links_of_registrations = pd.DataFrame(
+                columns=['地区', '剧名', '题材', '制作机构', '备案链接', '公示名称', '公示批次链接'])
             
         if savefile:
             self.save_records(links_of_registrations, filename, backup=True)
@@ -302,6 +302,15 @@ class Registration(object):
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
+        
+        if links_of_registrations.shape[0] == 0:
+            contents_of_registrations = pd.DataFrame(
+                columns=['剧名', '集数', '报备机构', '题材', '内容提要', 
+                         '公示年月', '许可证号', '体裁', '拍摄日期', '制作周期', 
+                         '省级管理部门备案意见', '相关部门意见', '备注',
+                         '备案链接', '公示名称', '公示批次链接', '地区'])
+            return contents_of_registrations
+        
         for idx, reg in links_of_registrations.iterrows():
             req = Request(url=reg['备案链接'], headers=self.headers) 
             with urlopen(req, context=ctx) as x:
@@ -371,13 +380,11 @@ class Registration(object):
                     '备案链接', '公示名称', '公示批次链接', '地区'
                     ]].copy()
             else:
-                contents_of_registrations = pd.DataFrame()
-                contents_of_registrations.columns = [
-                    '剧名', '集数', '报备机构', '题材', '内容提要', '公示年月', 
-                    '许可证号', '体裁', '拍摄日期', '制作周期', 
-                    '省级管理部门备案意见', '相关部门意见', '备注',
-                    '备案链接', '公示名称', '公示批次链接', '地区'
-                    ]
+                contents_of_registrations = pd.DataFrame(
+                    columns=['剧名', '集数', '报备机构', '题材', '内容提要', 
+                             '公示年月', '许可证号', '体裁', '拍摄日期', '制作周期', 
+                             '省级管理部门备案意见', '相关部门意见', '备注',
+                             '备案链接', '公示名称', '公示批次链接', '地区'])
             
         if savefile:
             self.save_records(contents_of_registrations, filename, backup=True)

@@ -12,3 +12,5 @@ tv_reg = Registration()
 
 #%% update and save
 tv_reg.update_records(how='quick', save_update=True)
+
+#%%
