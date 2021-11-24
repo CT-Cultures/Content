@@ -14,3 +14,6 @@ tv_reg = Registration()
 tv_reg.update_records(how='quick', save_update=True)
 
 #%%
+import pandas as pd
+
+reg = pd.read_json('records/contents_of_registrations.json')
