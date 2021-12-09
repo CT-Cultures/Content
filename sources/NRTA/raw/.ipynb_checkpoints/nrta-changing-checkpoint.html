@@ -1,0 +1,427 @@
+
+
+            
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="/styles/tims/site/default.css" />
+<link rel="stylesheet" type="text/css" href="/styles/tims/site/headbottom.css" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/tims/site/styles/default/style.shanty" />
+<link rel="stylesheet" type="text/css" href="/tims/site/views/applications/include/headbottom/style.shanty" />
+<title>国家广播电影电视总局-电视剧办事服务大厅</title>
+
+<script>
+ var doPage=function (n){
+    window.location.href="?appName=changing&pageIndex="+n;
+ }
+</script> 
+</head>
+
+<body>
+<div style="margin:auto;">
+<div style="width:1002px; margin:auto;">
+    <table width="1002" border="0" cellpadding="0" cellspacing="0" background="/site/styles/default/images/topbg.gif">
+  <tr>
+    <td width="490" height="12"><img src="/site/styles/default/images/logo.gif" width="317" height="79"></td>
+    <td width="491"><table width="96%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td align="right">
+             <a href="/index.shanty">网站首页</a> | 
+             <a onclick="window.external.addFavorite('http://dsj.sarft.gov.cn','国家广播电影电视总局--电视剧管理司')" target=_self href="#">加入收藏</a> 
+         </td>
+      </tr>
+      <tr>
+        <td height="30">&nbsp;</td>
+      </tr>
+      <tr>
+        <td align="right">
+<table border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="60"></td>
+        <td width="200">
+        </td>
+        <td width="60">
+        </td>
+      </tr>
+</table>
+        </td>
+      </tr>
+    </table></td>
+  </tr>
+</table>
+
+
+    
+<table width="1002" border="0" cellpadding="0" cellspacing="0" class="headbottom">
+  <tr>
+    <td background="/site/styles/default/images/flow/dhbg_02.gif">
+        <img src="/site/styles/default/images/flow/dhbg_01.gif" width="46" height="37">
+    </td>
+    <td background="/site/styles/default/images/flow/dhbg_02.gif" class="title_white">
+        <img src="/site/styles/default/images/flow/flag.gif" width="13" height="16"> 
+        您所在位置：办事服务 -&gt; 
+                                          变更通告     </td>
+    <td background="/site/styles/default/images/flow/dhbg_04.gif">
+        <img src="/site/styles/default/images/flow/dhbg_03.gif" width="35" height="37">
+    </td>
+    <td align="center" background="/site/styles/default/images/flow/dhbg_04.gif">
+    <div class="headbottom_menu">
+        <div >
+                            <a href="/tims/site/views/applications.shanty?appName=note">备案公示</a>
+                    </div>
+        <div >
+                            <a href="/tims/site/views/applications.shanty?appName=announce">发行许可通告</a>
+                    </div>
+        <div >
+                            <a href="/tims/site/views/applications.shanty?appName=importantLixiang">重大题材立项</a>
+                    </div>
+        <div >
+                            <a href="/tims/site/views/applications.shanty?appName=importantShezhi">重大题材摄制</a>
+                    </div>
+        <div   class="headbottom_menu_selected" >
+                            <span>变更通报</span>
+                    </div>
+    </div>
+    </td>
+
+    <td align="right" background="/site/styles/default/images/flow/dhbg_04.gif">
+        <img src="/site/styles/default/images/flow/dhbg_05.gif" width="39" height="37">
+    </td>
+  </tr>
+</table>
+
+    <table width="100%"><tr>
+      <td width="280" valign="top">
+           <form name="queryForm" method="post" style="margin:0;padding:0;"  target="ActionsForm">
+<table width="100%" border="0" cellpadding="0" cellspacing="0" background="/site/styles/default/images/flow/searchbg_02.gif">
+      <tr>
+        <td width="5%"><img src="/site/styles/default/images/flow/searchbg_01.gif" width="9" height="89"></td>
+        <td width="92%"><table width="100%" border="0" cellspacing="0" cellpadding="2">
+          <tr>
+            <td width="10%"><img src="/site/styles/default/images/flow/icon_search.gif" width="28" height="27"></td>
+            <td colspan="2" class="title_orange">变更查询</td>
+            <td width="60">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
+            <td colspan="2"><nobr>剧名：</nobr><input name="queryName" type="text" class="input1"></td>
+            <td><img src="/site/styles/default/images/flow/bt_search.gif" width="41" height="21" style="cursor:pointer;" onclick="doQuery()"></td>
+          </tr>
+        </table></td>
+        <td width="3%" align="right"><img src="/site/styles/default/images/flow/searchbg_03.gif" width="9" height="89"></td>
+      </tr>
+    </table>
+
+      <table width="50%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+          <td height="4"></td>
+        </tr>
+      </table>
+
+</form>
+<iframe name="ActionsForm" src="about:blank" style="display:none;width:1px;height:1px;"></iframe>
+
+<script>
+    var queryType={
+          issue:{
+              action:"/tims/outer/actions/checkIssue.shanty",
+              name:"teleplay.issue"
+          },
+          blueprint:{
+              action:'/tims/outer/actions/checkBlueprint.shanty',
+              name:'teleplay.title'
+          }
+          ,pro:{
+               action:'/tims/outer/actions/checkpro.shanty',
+               name:'producer.name'
+          }
+    }
+    var doQuery=function(){
+       
+       var form=document.forms['queryForm'];
+       var type=queryType[form[0].value];
+       form.action=  type.action;  
+       form[1].name=type.name;
+       form.submit();     
+
+    } 
+
+</script>
+
+      </td>
+      <td valign="top" style="padding-left:10px;">
+           <table width="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+              <td colspan="2">&nbsp;</td>
+            </tr>
+            <tr>
+              <td width="4%" align="center"><img src="/site/styles/default/images/arrow05.gif" width="13" height="13"></td>
+              <td width="96%" class="black14bold">变更通告列表</td>
+            </tr>
+            <tr>
+              <td height="2" colspan="2" bgcolor="#ff623e"></td>
+            </tr>
+            <tr>
+              <td height="12" colspan="2"></td>
+            </tr>
+          </table>
+          <TABLE width="98%" border=0 cellPadding=0 cellSpacing=0 align="center">
+            <TBODY>
+
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=017c6e722ac23c724028819a7bc80744"  style="width: 100%; text-align: left;" title="2021年9月全国电视剧月报备案通报" target="_blank">2021年9月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=017bdcdbcc2b0d104028819a7bc80744"  style="width: 100%; text-align: left;" title="2021年8月全国电视剧月报备案通报" target="_blank">2021年8月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=017b193fbd9553aa4028819a79511714"  style="width: 100%; text-align: left;" title="2021年7月全国电视剧月报备案通报" target="_blank">2021年7月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=017a7e650cdc1c5e4028819a79511714"  style="width: 100%; text-align: left;" title="2021年6月全国电视剧月报备案通报" target="_blank">2021年6月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=0179d63339cc1b3f4028819a79511714"  style="width: 100%; text-align: left;" title="2021年5月全国电视剧月报备案通报" target="_blank">2021年5月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=01795f1405610a324028819a79511714"  style="width: 100%; text-align: left;" title="2021年4月全国电视剧月报备案通报" target="_blank">2021年4月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=0178cdd93ba13f6b4028819a77b8fcd5"  style="width: 100%; text-align: left;" title="2021年3月全国电视剧月报备案通报" target="_blank">2021年3月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=0178156838b32e834028819a77b8fcd5"  style="width: 100%; text-align: left;" title="2021年2月全国电视剧月报备案通报" target="_blank">2021年2月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=01777f37306f0c154028819a776fc9ef"  style="width: 100%; text-align: left;" title="2021年1月全国电视剧月报备案通报" target="_blank">2021年1月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=01776c30486f5e0040284e94773449ef"  style="width: 100%; text-align: left;" title="2020年12月全国电视剧月报备案通报" target="_blank">2020年12月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=017646b278e479c54028819a74be1459"  style="width: 100%; text-align: left;" title="2020年11月全国电视剧月报备案通报" target="_blank">2020年11月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=017646b2204b79c24028819a74be1459"  style="width: 100%; text-align: left;" title="2020年10月全国电视剧月报备案通报" target="_blank">2020年10月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=01756dbaa47f16f74028819a74be1459"  style="width: 100%; text-align: left;" title="2020年9月全国电视剧月报备案通报" target="_blank">2020年9月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=01749495319207c34028819a747ce0b6"  style="width: 100%; text-align: left;" title="2020年8月全国电视剧月报备案通报" target="_blank">2020年8月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+          <TR>
+                <TD height=25>
+<IMG height=9 src="/site/styles/default/images/icon_arrow_r.gif" width=6 align=absMiddle border=0> 
+
+<a href="/tims/site/views/applications/changing/view.shanty?appName=changing&id=01740606b8c06eec4028819a7296ba68"  style="width: 100%; text-align: left;" title="2020年7月全国电视剧月报备案通报" target="_blank">2020年7月全国电视剧月报备案通报   </a>
+                </TD>
+              </TR>
+              <TR>
+                <TD style="BACKGROUND-REPEAT: repeat-x" 
+                      background=/site/styles/default/images/index_line_bg2.gif></TD>
+              </TR>
+            </TBODY>
+          </TABLE>
+
+<TABLE 
+                              width="98%" align=center bgcolor="#E6EEF2" >
+        <TBODY>
+          <TR>
+            <TD class=subhead></TD>
+            <TD>&nbsp;</TD>
+            <TD align=right>
+                      <font class="page_total_label">总记录数：</font><font class="page_total_value">171</font> 
+                      <font class="page_num_label">页数：</font><font class="page_num_value">1 /12 </font> &nbsp;
+<span style="color:#cccccc">首页</span> | 
+<span style="color:#cccccc">上页</span>
+ | <a href="javascript:doPage( 1 + 1 )">下页</a> 
+ | <a href="javascript:doPage( 12 )">尾页</a>
+   &nbsp;到第
+              <INPUT id=jumpto 
+                        style="BORDER-RIGHT: #666666 1px solid; BORDER-TOP: #666666 1px solid; BORDER-LEFT: #666666 1px solid; WIDTH: 30px; BORDER-BOTTOM: #666666 1px solid; HEIGHT: 17px" 
+                        maxLength=3 size=3 value='1' name=jumpto>
+              页 <A 
+                        href="javascript:gotoPage();"><IMG alt=翻到指定的页码 
+                        src="/inner/styles/default/images/btn_ok.gif" 
+                        align=absMiddle 
+              border=0></A></SPAN></TD>
+          </TR>
+        </TBODY>
+      </TABLE>
+
+  <script>
+   function gotoPage(){
+             var el=document.getElementById('jumpto');
+             doPage(el.value);
+   };
+  </script>
+
+
+
+
+      </td>
+    </tr></table>
+
+    <table width="1002" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr>
+    <td height="70" align="center" background="/site/styles/default/images/footbg.jpg">
+        主办单位：国家广播电影电视总局电视剧管理司   技术支持：国家广播电影电视总局信息中心<br>
+        中华人民共和国国家广播电影电视总局 版权所有，未经许可不得转载
+    </td>
+  </tr>
+</table>
+</div>
+</div>
+</body>
+</html>
+    
