@@ -21,9 +21,7 @@ from bs4 import BeautifulSoup
 import re
 import pandas as pd
 #%% Import Common Libraries
-os.chdir('../Common')
-from utils import DB
-os.chdir('../zgdypw')
+from common.utils import DB
 #%%
 class ZGDYPW(DB):
     
