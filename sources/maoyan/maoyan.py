@@ -19,9 +19,7 @@ import re
 import pandas as pd
 
 #%% Import Common Libraries
-os.chdir('../Common')
-from utils import DB
-os.chdir('../maoyan')
+from common.utils import DB
 
 #%% Define MAOYAN Class
 class MAOYAN(DB):
