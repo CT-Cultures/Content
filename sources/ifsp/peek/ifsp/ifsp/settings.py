@@ -12,7 +12,7 @@ BOT_NAME = 'ifsp'
 SPIDER_MODULES = ['ifsp.spiders']
 NEWSPIDER_MODULE = 'ifsp.spiders'
 
-SPLASH_URL = 'http://0.0.0.0:8050'
+SPLASH_URL = 'http://localhost:8050'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'ifsp (+http://www.yourdomain.com)'
@@ -47,15 +47,15 @@ COOKIES_ENABLED = False
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
-    #'ifsp.middlewares.IfspSpiderMiddleware': 543,
+    'ifsp.middlewares.IfspSpiderMiddleware': 543,
 }
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-    #'ifsp.middlewares.IfspDownloaderMiddleware': 543,
     #'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
-    #'scrapy_user_agents.middlewares
+    #'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 400,
+    #'scrapy_user_agents.middlewares',
     'scrapy_splash.SplashCookiesMiddleware': 723,
     'scrapy_splash.SplashMiddleware': 725,
     'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
