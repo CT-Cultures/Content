@@ -1,4 +1,4 @@
-## (1) articles
-  - jupyter notebooks to generate various articles
-## (2) models
-  - predictions models
+## (1) models
+  - trained models, download separately
+## (2) training_ipynb
+  - notebooks for training various models
