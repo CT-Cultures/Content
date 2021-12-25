@@ -1,43 +1,62 @@
-# Content
+# ContentAI
 
-## This Project tracks Film, TV and Web Series Registration and Release Records
-from China, and is capable of performing related searches on various content database
-sites.
+## ContentAI provides datasets and tools to perform content analysis on films, tv, web content analysis. 
+Currently, this packages focus on production analysis on films an television records from China.
+We will be working on expanding global coverage.
 
-## (1) 数据来源:
-  - 中国国家电影局 ChinaFilm
-        获得最备案数据：python run NRTA/update_registration.py
-        获得公映许可数据：python run ChinaFilm/update_release.py
+### (1) Datasets- ContentAI currently supports and maintains the following datasets：
+#### ChinaFilm - China Film Administration - 中国国家电影局
+    
+    #update film registration records from ChinaFilm
+    python run ./sources/ChinaFilm/update_registration.py
+   
+    #update film release permit records from ChinaFilm
+    python run ./sources/ChinaFilm/update_release.py
+    
+    #filepath to ChinaFilm registration records
+    fp_ChinaFilm_reg = './sources/ChinaFilm/records/contents_of_registrations.json'
+    
+    #filepath to ChinaFilm release records
+    fp_ChinaFilm_release = './sources/ChinaFilm/records/contents_of_releases.json'
+    
+    #import to pandas
+    import pandas as pd
+    filepath = './sources/ChinaFilm/records/contents_of_registrations.json'
+    df = pd.read_json(filepath)
         
-  - NRTA 中国国家广电总局 TV registration
-        python run NRTA/update_registration.py
+#### NRTA - National Radio and Television Administration - 中国国家广电总局
+
+     #update NRTA
+     python run ./sources/NRTA/update_registration.py
+     
+     #备案公示 数据集路径
+     fp_NRTA_reg = './sources/NRTA/contents_of_registrations.json'
   
-  - ZGDYPW 中国电影数据信息网
-  - IMDB
-  - Baidu Baike 百度百科
-  - Douban 豆瓣
-  - Maoyan 猫眼
-  - Endata 艺恩智库
-  - Taopiaopiao 淘票票
+#### ZGDYPW - China Moview Database - 中国电影数据信息网 
 
-## Sample Usage: python rum ChinaFilm/update_registrations.py
-                python run ChinaFilm/update_releases.py
-                python run NRTA/update_records.py
-Alternatively, One can use the corresponding jupyter notebooks to update and review records.
+     #update ZGDYPW new release records
+     python run ./update_newrelease.py
+     
+     #file path to ZGDYPW new release records
+     fp_ZGDYPW_intheater_preview = './sources/zgdypw/contents_of_releases.py'
+
+#### A note on the differences between ChinaFilm's release records and ZGDYPW's new release records
+ The films in China Film's release records indicate that the films have obtained 
+ release permits, thus become eligible for release in theaters. Not all films
+ with a release permits play in theaters. 
+ 
+ The ZGDYPW's new release records track the latest films with an on-screen date,
+ this is a good indicator that the film will actually play in theaters. In the future, 
+ we plan to cross check information with dcp keys. Each theatrical release format 
+ (2D, 3D, iMAX, etc) will have an unique access key for corresponding DCP copies, so that
+ theaters can download to unlock playback. Having a key further strengthens
+ the probability of a film actually hits the theater.
 
 
-## (2) Tools include:
-  - Genre classification from short synopsis 类型识别
-  - Time Period classification from short synopsis 年代识别
-  - NER 
-    - Character Recognition from synopsis 主角识别
-  - Key phrase/word idenfication 关键词内容提取
-    - abstractive title prediction 生成式片名预测
-    - extractive title prediction 抽取式片名预测
-    - TF-IDF keyword extraction 逆文本词频关键词提取
-  - WIP
-    - Story Progression Similarity Comparison 用梗概检索类似的故事
-
-### Screenplay Module had spun off to become a standalone repository， it offers screenplay formatting, translation and synopsis generation capabilities. Screenplay现已成为独立的Repo，提供剧本格式转换，翻译及梗概生成工具。
-
-### Article Module had spun off to become a standalone repository, it create analytical reports from the content database.
+### (2) Search Tools - these tools searches on the film, tv's via various sources
+#### IMDB
+#### Baidu Baike 
+#### Douban 
+#### Maoyan 
+#### Endata 
+#### Taopiaopiao
