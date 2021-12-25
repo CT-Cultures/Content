@@ -4,11 +4,11 @@
 
 ### (1) 数据集 - ContentAI 目前支持 收集、维护下列数据集，数据集：
   - 中国国家电影局 ChinaFilm
-        更新 备案公示 数据集： python run ./sources/ChinaFilm/update_registration.py
-        更新 公映许可公示 数据集：python run ./sources/ChinaFilm/update_release.py
-        备案公示 数据集路径：./sources/ChinaFilm/records/contents_of_registrations.json
-        公映许可 数据集路径：./sources/ChinaFilm/records/contents_of_releases.json
-        Pandas 导入示例：df = pd.read_json('{文件路径}')
+        -- 更新 备案公示 数据集： python run ./sources/ChinaFilm/update_registration.py
+        -- 更新 公映许可公示 数据集：python run ./sources/ChinaFilm/update_release.py
+        -- 备案公示 数据集路径：./sources/ChinaFilm/records/contents_of_registrations.json
+        -- 公映许可 数据集路径：./sources/ChinaFilm/records/contents_of_releases.json
+        -- Pandas 导入示例：df = pd.read_json('{文件路径}')
         
   - 中国国家广电总局 NRTA
         更新 备案公示 数据集： python run ./sources/NRTA/update_registration.py
