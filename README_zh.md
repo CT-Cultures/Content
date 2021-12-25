@@ -5,7 +5,7 @@
 ### (1) 数据集 - ContentAI 目前支持 收集、维护下列数据集，数据集：
 #### 中国国家电影局 ChinaFilm
     
-    #更新 备案公示 数据集： 
+    #更新 备案公示 数据集
     python run ./sources/ChinaFilm/update_registration.py
    
     #更新 公映许可公示 数据集
@@ -17,18 +17,26 @@
     #公映许可 数据集路径
     fp_ChinaFilm_release = './sources/ChinaFilm/records/contents_of_releases.json'
     
-    #Pandas 导入示例：
+    #Pandas 导入示例
     import pandas as pd
     filepath = './sources/ChinaFilm/records/contents_of_registrations.json'
     df = pd.read_json(filepath)
         
 #### 中国国家广电总局 NRTA
-        更新 备案公示 数据集： python run ./sources/NRTA/update_registration.py
-        备案公示 数据集路径： ./sources/NRTA/contents_of_registrations.json
+
+     #更新 备案公示 数据集
+     python run ./sources/NRTA/update_registration.py
+     
+     #备案公示 数据集路径
+     fp_NRTA_reg = './sources/NRTA/contents_of_registrations.json'
   
 #### 中国电影数据信息网 ZGDYPW
-        更新 新片上映预告 数据集：python run ./update_intheater_preview.py
-        新片上映预告 数据集路径： ./sources/zgdypw/update_intheater_preview.py
+
+     #更新 新片上映预告 数据集
+     python run ./update_intheater_preview.py
+     #新片上映预告 数据集路径
+     
+     fp_ZGDYPW_intheater_preview = './sources/zgdypw/update_intheater_preview.py'
 
 ### (2) 信息搜索工具
 ####IMDB
@@ -41,16 +49,10 @@
 ## (2) 工具 Tools:
 ### 影片类型识别器 - 输入影片梗概，自动判断影片的类型
           使用示例 from tools
-  - 影片年代识别器 - 输入影片梗概，自动判断影片的年代
-  - NER 
-    - Character Recognition from synopsis 主角识别
-  - Key phrase/word idenfication 关键词内容提取
+### 影片年代识别器 - 输入影片梗概，自动判断影片的年代
+### 主角识别器 
+
+### 关键词提取
     - abstractive title prediction 生成式片名预测
     - extractive title prediction 抽取式片名预测
     - TF-IDF keyword extraction 逆文本词频关键词提取
-  - WIP
-    - Story Progression Similarity Comparison 用梗概检索类似的故事
-
-### Screenplay Module had spun off to become a standalone repository， it offers screenplay formatting, translation and synopsis generation capabilities. Screenplay现已成为独立的Repo，提供剧本格式转换，翻译及梗概生成工具。
-
-### Article Module had spun off to become a standalone repository, it create analytical reports from the content database.
