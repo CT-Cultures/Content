@@ -1,4 +1,5 @@
 tools/models/archive
+tools/models/bart-base-chinese-cluecorpussmall-FilmChina-and-NRTA-titleprediction
 tools/models/model_predict_title
 tools/models/model_predict_genre
 tools/models/model_predict_timeperiod
