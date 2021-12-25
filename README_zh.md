@@ -8,7 +8,10 @@
      更新 公映许可公示 数据集：python run ./sources/ChinaFilm/update_release.py
      备案公示 数据集路径：./sources/ChinaFilm/records/contents_of_registrations.json
      公映许可 数据集路径：./sources/ChinaFilm/records/contents_of_releases.json
-     Pandas 导入示例：df = pd.read_json('{文件路径}')
+     Pandas 导入示例：
+          import pandas as pd
+          filepath = './sources/ChinaFilm/records/contents_of_registrations.json'
+          df = pd.read_json(filepath)
         
 #### 中国国家广电总局 NRTA
         更新 备案公示 数据集： python run ./sources/NRTA/update_registration.py
