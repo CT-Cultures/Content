@@ -4,9 +4,15 @@
 from China, and is capable of performing related searches on various content database
 sites.
 
-## (1) Data Sources include:
-  - ChinaFilm 中国国家电影局- film registration, film release permit
+## (1) 数据来源:
+  - 中国国家电影局 ChinaFilm
+        获得最备案数据：python run NRTA/update_registration.py
+        获得公映许可数据：python run ChinaFilm/update_release.py
+        
   - NRTA 中国国家广电总局 TV registration
+        python run NRTA/update_registration.py
+  
+  - ZGDYPW 中国电影数据信息网
   - IMDB
   - Baidu Baike 百度百科
   - Douban 豆瓣
