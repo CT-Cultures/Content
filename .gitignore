@@ -1,4 +1,5 @@
 tools/models/archive
+tools/models/model_predict_title
 tools/models/model_predict_genre
 tools/models/model_predict_timeperiod
 tools/sources/ChinaFilm/records/backup

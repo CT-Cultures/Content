@@ -1,4 +1,6 @@
 pandas>=1.3.4
 transformers>=4.15.0
+pytorch
 datasets
 selenium
+gdown

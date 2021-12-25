@@ -28,15 +28,8 @@ def predict_title(ls_summary,
     # Instantiate tokenizer and model
     checkpoint = path_model
     if checkpoint == "default":
-        checkpoint = "./tools/models/model_preidct_title"
-        if not os.path.exists(checkpoint):
-            gdd.download_file_from_google_drive(
-                file_id="11jGMJfVCjTA0WCYF_VyhsUV9fVkXAH0C",
-                dest_path=checkpoint,
-                unzip=True
-            )
+       assert checkpoint == "./tools/models/model_preidct_title"
             
-        
     tokenizer = BertTokenizer.from_pretrained(checkpoint)
     model = BartForConditionalGeneration.from_pretrained(checkpoint).to(device)
     model.eval()
