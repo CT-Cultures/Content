@@ -3,12 +3,12 @@
 ## ContentAI 为影视数据提供了基础工具，目前主要针对中国大陆的影视数据进行分析，并逐渐引入世界影视数据。
 
 ### (1) 数据集 - ContentAI 目前支持 收集、维护下列数据集，数据集：
-  - 中国国家电影局 ChinaFilm
-        -- 更新 备案公示 数据集： python run ./sources/ChinaFilm/update_registration.py
-        -- 更新 公映许可公示 数据集：python run ./sources/ChinaFilm/update_release.py
-        -- 备案公示 数据集路径：./sources/ChinaFilm/records/contents_of_registrations.json
-        -- 公映许可 数据集路径：./sources/ChinaFilm/records/contents_of_releases.json
-        -- Pandas 导入示例：df = pd.read_json('{文件路径}')
+#### 中国国家电影局 ChinaFilm
+     ##### 更新 备案公示 数据集： python run ./sources/ChinaFilm/update_registration.py
+     ##### 更新 公映许可公示 数据集：python run ./sources/ChinaFilm/update_release.py
+     ##### 备案公示 数据集路径：./sources/ChinaFilm/records/contents_of_registrations.json
+     ##### 公映许可 数据集路径：./sources/ChinaFilm/records/contents_of_releases.json
+     ##### Pandas 导入示例：df = pd.read_json('{文件路径}')
         
   - 中国国家广电总局 NRTA
         更新 备案公示 数据集： python run ./sources/NRTA/update_registration.py
