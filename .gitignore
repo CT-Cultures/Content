@@ -1,9 +1,9 @@
 tools/models/archive
-sources/ChinaFilm/records/backup
-sources/NRTA/records/backup
-sources/NRTA/Announcements
-sources/maoyan/records/backup
-sources/douban/wip
-sources/maoyan/searches
+tools/sources/ChinaFilm/records/backup
+tools/sources/NRTA/records/backup
+tools/sources/NRTA/Announcements
+tools/sources/maoyan/records/backup
+tools/sources/douban/wip
+tools/sources/maoyan/searches
 *.pyc
 git.ipynb
