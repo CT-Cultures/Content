@@ -1,4 +1,6 @@
 tools/models/archive
+tools/models/model_predict_genre
+tools/models/model_predict_timeperiod
 tools/sources/ChinaFilm/records/backup
 tools/sources/NRTA/records/backup
 tools/sources/NRTA/Announcements
