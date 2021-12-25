@@ -1,6 +1,6 @@
 # ContentAI
 
-## ContentAI provides datasets and tools to perform content analysis on films, tv, web content analysis. 
+## ContentAI provides datasets and tools to perform data analysis on films, tv and web contents. 
 Currently, this packages focus on production analysis on films an television records from China.
 We will be working on expanding global coverage.
 
