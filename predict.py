@@ -13,10 +13,17 @@ from collections import Counter
 import torch
 import gdown
 
-#%% preidct_title()
+#%% id_main_character(ls_summary)
+import jieba.analyse
+import jieba
+import jieba.posseg as pseg
+tfidf = jieba.analyse.extract_tags
+textrank = jieba.analyse.textrank
+jieba.enable_paddle() #启动paddle模式。 0.40版之后开始支持，早期版本不支持
 
 from transformers import BertTokenizer, BartForConditionalGeneration
 
+#%Predict Title%
 def predict_title(ls_summary,
                   path_model:str="default",
                   batch_size:int=8,
@@ -28,8 +35,7 @@ def predict_title(ls_summary,
     # Instantiate tokenizer and model
     checkpoint = path_model
     if checkpoint == "default":
-       assert checkpoint == "./tools/models/model_preidct_title"
-            
+       checkpoint = "tools/models/model_predict_title"
     tokenizer = BertTokenizer.from_pretrained(checkpoint)
     model = BartForConditionalGeneration.from_pretrained(checkpoint).to(device)
     model.eval()
@@ -71,7 +77,7 @@ def predict_title(ls_summary,
     predictions = [remove_specials(p) for p in predictions]
     return predictions
 
-#%% predict_genre()
+#%Predict Genre%
 from transformers import BertTokenizer, BertForSequenceClassification
 
 def predict_genre(ls_summary,
@@ -96,7 +102,7 @@ def predict_genre(ls_summary,
     
     checkpoint = path_model
     if checkpoint == "default":
-        checkpoint = "./tools/models/model_preidct_genre"   
+        checkpoint = "tools/models/model_predict_genre"   
     tokenizer = BertTokenizer.from_pretrained(checkpoint)
     model = BertForSequenceClassification.from_pretrained(
       checkpoint,
@@ -115,7 +121,7 @@ def predict_genre(ls_summary,
     while i < L:
       batch_test = tokenizer(ls_summary[i:i+batch_size],
                              padding=True,
-                             #max_length=512, 
+                             max_length=512, 
                              truncation=True, 
                              return_tensors='pt'
                             )
@@ -130,7 +136,7 @@ def predict_genre(ls_summary,
     predictions = [id2label_genre[p] for p in predictions]
     return predictions
 
-#%% predict_time()
+#%Predict Time Period%
 from transformers import BertTokenizer, BertForSequenceClassification
 
 def predict_time(ls_summary,
@@ -153,7 +159,7 @@ def predict_time(ls_summary,
     
     checkpoint = path_model
     if checkpoint == "default":
-        checkpoint = "./tools/models/model_preidct_timeperiod" 
+        checkpoint = "tools/models/model_predict_timeperiod" 
     
     tokenizer = BertTokenizer.from_pretrained(checkpoint)
     model = BertForSequenceClassification.from_pretrained(
@@ -172,7 +178,7 @@ def predict_time(ls_summary,
     while i < L:
       batch_test = tokenizer(ls_summary[i:i+batch_size],
                              padding=True,
-                             #max_length=512, 
+                             max_length=512, 
                              truncation=True, 
                              return_tensors='pt'
                             )
@@ -187,12 +193,12 @@ def predict_time(ls_summary,
     predictions = [id2label_time[p] for p in predictions]
     return predictions
 
-#%% id_main_character(ls_summary)
-import jieba
-import jieba.posseg as pseg
-jieba.enable_paddle() #启动paddle模式。 0.40版之后开始支持，早期版本不支持
+#%extract_keywords%
+def extract_keywords(x, topK=10):
+  return textrank(x, topK=10)
 
-def find_PER(x: pd.Series):
+#%Identify Characters%
+def identify_characters(x: pd.Series):
   # 识别主要角色
   words = pseg.cut(x, use_paddle=True)
   ls_PER = []
