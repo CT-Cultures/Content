@@ -68,31 +68,30 @@ class Registration(object):
         else:
             self.driver = driver 
         
-        
-        
        
         if os.path.isfile(self.path_records + '//' + 'links_of_publications.json'):
            self.links_of_publications_existing = pd.read_json(
-               self.path_records + '//' + 'links_of_publications.json')
+               self.path_records + '//' + 'links_of_publications.json', orient='split')
         else:
             self.links_of_publications_existing = pd.DataFrame()
          
         if os.path.isfile(self.path_records + '//' + 'links_of_registrations.json'):
             self.links_of_registrations_existing = pd.read_json(
-                self.path_records + '//' + 'links_of_registrations.json')
+                self.path_records + '//' + 'links_of_registrations.json', orient='split')
         else:
             self.links_of_registrations_existing = pd.DataFrame()
             
         if os.path.isfile(self.path_records + '//' + 'contents_of_registrations.json'):
             self.contents_of_registrations_existing = pd.read_json(
-                self.path_records + '//' + 'contents_of_registrations.json')
+                self.path_records + '//' + 'contents_of_registrations.json', orient='split')
         else:
             self.contents_of_registratons_existing = pd.DataFrame()
         
 ##########        
     def save_records(self,
                      records: pd.DataFrame, 
-                     filename: str, 
+                     filename: str,
+                     orient='split',
                      backup=True) -> None:
         """
         This functions saves pd.DataFrame to json files with backup option
@@ -104,7 +103,7 @@ class Registration(object):
         if backup:
             if os.path.isfile(path_file):
                 os.rename(path_file, path_file_bk)
-        records.to_json(path_file, orient='table')
+        records.to_json(path_file, orient=orient)
         print('file saved to: ' + filename + '.json with a total of ', 
               records.shape[0], ' records.')
         

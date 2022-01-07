@@ -13,3 +13,6 @@ dy_reg = Registration()
 #%%
 contents_of_registrations = dy_reg.update_records(how='quick', 
                                                   save_update=True)
+
+#%%
+dy_reg.save_records(contents_of_registrations, 'contents_of_registrations', orient='split')
