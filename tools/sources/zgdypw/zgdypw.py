@@ -67,7 +67,7 @@ class ZGDYPW(DB):
         if backup:
             if os.path.isfile(path_file):
                 os.rename(path_file, path_file_bk)
-        records.to_json(path_file)
+        records.to_json(path_file, orient='split')
         print('file saved to: ' + filename + '.json with a total of ', 
               records.shape[0], ' records.')
         
