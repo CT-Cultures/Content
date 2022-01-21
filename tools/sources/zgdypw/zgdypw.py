@@ -200,7 +200,7 @@ class ZGDYPW(DB):
             pd.Series(links_of_releases_latest).rename('publink').to_frame()
         
         contents_of_releases_existing = pd.read_json(
-            self.path_records + '/' + fn_contents_of_releases + '.json')
+            self.path_records + '/' + fn_contents_of_releases + '.json', orient='split')
         
         
         if how == 'quick':
