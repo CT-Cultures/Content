@@ -51,12 +51,12 @@ class Registration(object):
         self.pub_to_ignore_existing = pd.DataFrame()
         if os.path.isfile(self.path_records + '//'  + 'df_pub_to_ignore.json'):
             self.pub_to_ignore_existing = pd.read_json(
-                self.path_records + '//'  + 'df_pub_to_ignore.json')
+                self.path_records + '//'  + 'df_pub_to_ignore.json', orient='split')
 
         # read existing links of publications
         if os.path.isfile(self.path_records + '//'  + 'links_of_publications.json'):
             self.links_of_publications_existing = pd.read_json(
-                self.path_records + '//'  + 'links_of_publications.json')
+                self.path_records + '//'  + 'links_of_publications.json', orient='split')
         else:
             self.links_of_publications_existing = pd.DataFrame()
 
@@ -64,14 +64,14 @@ class Registration(object):
         
         if os.path.isfile(self.path_records + '//'  + 'links_of_registrations.json'):
             self.links_of_registrations_existing = pd.read_json(
-                self.path_records + '//'  + 'links_of_registrations.json')
+                self.path_records + '//'  + 'links_of_registrations.json', orient='split')
         else:
             self.links_of_registrations_existing = pd.DataFrame()
             
         # read existing contents of registrations
         if os.path.isfile(self.path_records + '//'  + 'contents_of_registrations.json'):
             self.contents_of_registrations_existing = pd.read_json(
-                self.path_records + '//'  + 'contents_of_registrations.json')
+                self.path_records + '//'  + 'contents_of_registrations.json', orient='split')
         else: 
             self.contents_of_registrations_existing = pd.DataFrame()
         
@@ -91,7 +91,7 @@ class Registration(object):
         if backup:
             if os.path.isfile(path_file):
                 os.rename(path_file, path_file_bk)
-        records.to_json(path_file)
+        records.to_json(path_file, orient='split')
         print(records.shape)
         print('file saved to: ' + filename + '.json')
     
