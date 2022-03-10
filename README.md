@@ -51,12 +51,3 @@ We will be working on expanding global coverage.
  (2D, 3D, iMAX, etc) will have an unique access key for corresponding DCP copies, so that
  theaters can download to unlock playback. Having a key further strengthens
  the probability of a film actually hits the theater.
-
-
-### (2) Search Tools - these tools searches on the film, tv's via various sources
-#### IMDB
-#### Baidu Baike 
-#### Douban 
-#### Maoyan 
-#### Endata 
-#### Taopiaopiao
