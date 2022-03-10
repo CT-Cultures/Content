@@ -1,10 +1,8 @@
 # ContentAI
 
-## ContentAI provides datasets and tools to perform data analysis on films, tv and web contents. 
-Currently, this packages focus on production analysis on films an television records from China.
-We will be working on expanding global coverage.
+## ContentAI gathers records from the various sources for registration, permit and release information on film, TV and web projects.
 
-### (1) Datasets- ContentAI currently supports and maintains the following datasets：
+### (1) Datasets- ContentAI currently tracks updates from the following sources：
 #### ChinaFilm - China Film Administration - 中国国家电影局
     
     #update film registration records from ChinaFilm
@@ -40,14 +38,3 @@ We will be working on expanding global coverage.
      #file path to ZGDYPW new release records
      fp_ZGDYPW_intheater_preview = './sources/zgdypw/contents_of_releases.py'
 
-#### A note on the differences between ChinaFilm's release records and ZGDYPW's new release records
- The films in China Film's release records indicate that the films have obtained 
- release permits, thus become eligible for release in theaters. Not all films
- with a release permits play in theaters. 
- 
- The ZGDYPW's new release records track the latest films with an on-screen date,
- this is a good indicator that the film will actually play in theaters. In the future, 
- we plan to cross check information with dcp keys. Each theatrical release format 
- (2D, 3D, iMAX, etc) will have an unique access key for corresponding DCP copies, so that
- theaters can download to unlock playback. Having a key further strengthens
- the probability of a film actually hits the theater.
