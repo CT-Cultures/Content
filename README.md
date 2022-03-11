@@ -37,4 +37,7 @@
      
      #file path to ZGDYPW new release records
      fp_ZGDYPW_intheater_preview = './sources/zgdypw/contents_of_releases.py'
+     
+## License
+[LiCENSE.md]
 
