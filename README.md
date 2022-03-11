@@ -1,6 +1,6 @@
 # ContentAI
 
-## ContentAI gathers records from the various sources for registration, permit and release information on film, TV and web projects.
+## ContentAI gathers records from the various sources for registration, permit and release information on film, TV and web projects and saves the records to json with after some cleanup.
 
 ### (1) Datasets- ContentAI currently tracks updates from the following sources：
 #### ChinaFilm - China Film Administration - 中国国家电影局
